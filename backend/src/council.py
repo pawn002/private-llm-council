@@ -56,6 +56,16 @@ class MinorityReport:
 
 
 @dataclass
+class ConfidenceScore:
+    """Confidence assessment for the synthesis."""
+
+    overall: float = 0.5  # 0.0 to 1.0
+    consensus_strength: float = 0.5
+    dissent_strength: float = 0.5
+    reasoning: str = ""
+
+
+@dataclass
 class Synthesis:
     """The chairman's synthesis of the deliberation."""
 
@@ -63,6 +73,7 @@ class Synthesis:
     consensus_points: list[str]
     divisions: list[str]
     unique_insights: list[str]
+    confidence: ConfidenceScore | None = None
 
 
 @dataclass
@@ -97,6 +108,7 @@ class Deliberation:
                 consensus_points=[],
                 divisions=[],
                 unique_insights=[],
+                confidence=None,
             ),
             disagreements=[],
             minority_reports=[],
@@ -117,10 +129,26 @@ class CouncilOrchestrator:
         gateway: InferenceGateway,
         config: CouncilConfig,
         degradation: DegradationConfig,
+        enable_deep_analysis: bool = True,
     ):
         self.gateway = gateway
         self.config = config
         self.degradation = degradation
+        self.enable_deep_analysis = enable_deep_analysis
+        self._analyzer = None
+
+    def _get_analyzer(self):
+        """Lazy-load the analyzer to avoid circular imports."""
+        if self._analyzer is None and self.enable_deep_analysis:
+            from .analysis import DeliberationAnalyzer
+
+            # Use first council member model for analysis
+            analysis_model = (
+                self.config.members[0].model if self.config.members else None
+            )
+            if analysis_model:
+                self._analyzer = DeliberationAnalyzer(self.gateway, analysis_model)
+        return self._analyzer
 
     async def deliberate(
         self,
@@ -170,8 +198,18 @@ class CouncilOrchestrator:
         critiques = await self._conduct_reviews(question, perspectives)
         deliberation.critiques = critiques
 
-        # Extract disagreements
-        disagreements = self._extract_disagreements(perspectives, critiques)
+        # Extract disagreements (enhanced if analyzer available)
+        analyzer = self._get_analyzer()
+        if analyzer:
+            if on_status:
+                on_status("Analyzing disagreements between perspectives...")
+            try:
+                disagreements = await analyzer.analyze_disagreements(question, perspectives)
+            except Exception:
+                # Fall back to basic extraction on error
+                disagreements = self._extract_disagreements(perspectives, critiques)
+        else:
+            disagreements = self._extract_disagreements(perspectives, critiques)
         deliberation.disagreements = disagreements
 
         # Stage 3: Chairman synthesis
@@ -182,7 +220,38 @@ class CouncilOrchestrator:
             question, perspectives, critiques, disagreements
         )
         deliberation.synthesis = synthesis
+
+        # Enhanced minority report extraction if analyzer available
+        if analyzer:
+            if on_status:
+                on_status("Extracting minority reports...")
+            try:
+                enhanced_reports = await analyzer.extract_minority_reports(
+                    question, perspectives, synthesis.content, critiques
+                )
+                if enhanced_reports:
+                    minority_reports = enhanced_reports
+            except Exception:
+                pass  # Keep basic minority reports on error
+
         deliberation.minority_reports = minority_reports
+
+        # Assess confidence if analyzer available
+        if analyzer:
+            if on_status:
+                on_status("Assessing synthesis confidence...")
+            try:
+                confidence = await analyzer.assess_confidence(
+                    question, perspectives, disagreements, synthesis.content
+                )
+                deliberation.synthesis.confidence = ConfidenceScore(
+                    overall=confidence.overall,
+                    consensus_strength=confidence.consensus_strength,
+                    dissent_strength=confidence.dissent_strength,
+                    reasoning=confidence.reasoning,
+                )
+            except Exception:
+                pass  # No confidence score on error
 
         return deliberation
 

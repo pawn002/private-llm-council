@@ -111,12 +111,22 @@ class DeliberationRequest(BaseModel):
     question: str
 
 
+class ConfidenceResponse(BaseModel):
+    """Confidence assessment for synthesis."""
+
+    overall: float
+    consensus_strength: float
+    dissent_strength: float
+    reasoning: str
+
+
 class DeliberationResponse(BaseModel):
     """Response from deliberation."""
 
     id: str
     question: str
     synthesis: str
+    confidence: ConfidenceResponse | None = None
     perspectives: list[dict]
     disagreements: list[dict]
     minority_reports: list[dict]
@@ -194,10 +204,36 @@ async def deliberate(request: DeliberationRequest):
 
         logger.info(f"Deliberation complete: {deliberation.id}")
 
+        # Build confidence response if available
+        confidence = None
+        if deliberation.synthesis.confidence:
+            confidence = ConfidenceResponse(
+                overall=deliberation.synthesis.confidence.overall,
+                consensus_strength=deliberation.synthesis.confidence.consensus_strength,
+                dissent_strength=deliberation.synthesis.confidence.dissent_strength,
+                reasoning=deliberation.synthesis.confidence.reasoning,
+            )
+
+        # Build disagreements with severity if available
+        disagreement_list = []
+        for d in deliberation.disagreements:
+            disagreement_dict = {
+                "topic": d.topic,
+                "description": d.description,
+                "positions": d.positions,
+            }
+            # Check if this is an AnalyzedDisagreement with severity
+            if hasattr(d, "severity"):
+                disagreement_dict["severity"] = d.severity.value if hasattr(d.severity, "value") else str(d.severity)
+            if hasattr(d, "implications"):
+                disagreement_dict["implications"] = d.implications
+            disagreement_list.append(disagreement_dict)
+
         return DeliberationResponse(
             id=deliberation.id,
             question=deliberation.question,
             synthesis=deliberation.synthesis.content,
+            confidence=confidence,
             perspectives=[
                 {
                     "id": p.member_id,
@@ -206,14 +242,7 @@ async def deliberate(request: DeliberationRequest):
                 }
                 for p in deliberation.perspectives
             ],
-            disagreements=[
-                {
-                    "topic": d.topic,
-                    "description": d.description,
-                    "positions": d.positions,
-                }
-                for d in deliberation.disagreements
-            ],
+            disagreements=disagreement_list,
             minority_reports=[
                 {
                     "member_id": mr.member_id,

@@ -114,9 +114,11 @@ class TestCouncilOrchestrator:
         degradation_config: DegradationConfig,
     ):
         """Test that deliberation collects perspectives from all members."""
+        # Disable deep analysis for unit tests (would require more mock responses)
         orchestrator = CouncilOrchestrator(
             gateway=mock_gateway,
             config=council_config,
+            enable_deep_analysis=False,
             degradation=degradation_config,
         )
 
@@ -149,6 +151,7 @@ class TestCouncilOrchestrator:
             gateway=mock_gateway,
             config=council_config,
             degradation=degradation_config,
+            enable_deep_analysis=False,
         )
 
         # Mock only one successful response, rest fail
@@ -176,6 +179,7 @@ class TestCouncilOrchestrator:
             gateway=mock_gateway,
             config=council_config,
             degradation=degradation_config,
+            enable_deep_analysis=False,
         )
 
         # Mock two successful responses (above minimum, below warn threshold)
@@ -213,6 +217,7 @@ class TestCouncilOrchestrator:
             gateway=mock_gateway,
             config=council_config,
             degradation=degradation_config,
+            enable_deep_analysis=False,
         )
 
         responses = [

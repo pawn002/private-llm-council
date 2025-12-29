@@ -363,9 +363,11 @@ persistence:
   # Operator override for enterprise deployments
   operator_can_override: true
 
-  # But always show the banner
+  # Always show the banner - but users can dismiss for their session
   consent_banner:
-    required: true
+    always_show_on_session_start: true  # Operators cannot disable this
+    user_dismissable: true              # User can hide after acknowledging
+    persist_dismissal: "session_only"   # Re-shown on next session
     text: "This deliberation will be forgotten when you close the session."
 
   # When saving is requested
@@ -588,27 +590,34 @@ hardware:
 
 ---
 
-## Decision Points for Review
+## Decision Points - RESOLVED
 
-Before implementation, the following decisions need confirmation:
+The following decisions have been finalized:
 
-1. **Default privacy mode**: SANCTUARY recommended. Accept?
+| # | Decision | Resolution |
+|---|----------|------------|
+| 1 | **Default privacy mode** | ✅ SANCTUARY - balanced security and usability |
+| 2 | **Minimum council size** | ✅ Minimum 2, with warning if fewer than 3 |
+| 3 | **Chairman fallback** | ✅ Allow fallback to largest available model with user prompt |
+| 4 | **Encryption requirement** | ✅ Required for all saves - no plaintext persistence |
+| 5 | **Consent banner** | ✅ Always shown, but user can dismiss for their session |
 
-2. **Minimum council size**: Set to 2 (with warning below 3). Accept, or require 3?
+### Banner Behavior Detail
 
-3. **Chairman fallback**: Allow fallback to largest available model? Or fail if 70B unavailable?
+The consent banner ("This deliberation will be forgotten when you close") is:
+- **Always displayed** on session start - operators cannot disable
+- **Dismissable by user** - once acknowledged, can be hidden for remainder of session
+- **Re-shown** on each new session
 
-4. **Encryption requirement**: Required for all saves, or optional with warning?
-
-5. **Consent banner**: Always show, or allow operator to disable for enterprise deployments?
+This preserves transparency (Plan B value) while reducing friction for repeat users (Plan A pragmatism).
 
 ---
 
 ## Next Steps
 
-1. Review this unified plan
-2. Resolve the decision points above
-3. Approve or request modifications
+1. ~~Review this unified plan~~ ✅
+2. ~~Resolve the decision points above~~ ✅
+3. Approve plan or request modifications
 4. Begin Phase 1 implementation
 
 ---

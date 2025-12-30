@@ -1,0 +1,250 @@
+# ============================================================================
+# THE SOVEREIGN COUNCIL - Configuration
+# ============================================================================
+# This configuration file is a statement of values, not just settings.
+# Comments explain WHY, not just WHAT.
+# ============================================================================
+
+# ============================================================================
+# IDENTITY & VALUES
+# Why this project exists
+# ============================================================================
+identity:
+  name: "The Sovereign Council"
+  version: "0.1.0"
+  principle: |
+    Your deliberations belong to you.
+    This system exists to keep them that way.
+
+# ============================================================================
+# PRIVACY MODE
+# Choose your position on the pragmatism-principle spectrum
+# ============================================================================
+privacy:
+  # Options: sovereign | sanctuary | citadel
+  # Default: sanctuary (balanced security and usability)
+  mode: "sanctuary"
+
+  modes:
+    sovereign:
+      description: "Air-gapped operation. No network activity whatsoever."
+      network_check: "fail_if_any_interface_up"
+      deployment: "native_binary"
+
+    sanctuary:
+      description: "Local network only. Verified isolation from internet."
+      network_check: "fail_if_external_egress_possible"
+      deployment: "docker_host_network"
+      allowed_connections:
+        - "localhost"
+        - "127.0.0.1"
+        - "host.docker.internal"
+
+    citadel:
+      description: "Containerized with network policies. Easier deployment."
+      network_check: "warn_if_egress_possible"
+      deployment: "docker_compose"
+
+# ============================================================================
+# INFERENCE GATEWAY
+# The plumbing that connects to local models
+# ============================================================================
+gateway:
+  # Provider options: ollama | vllm | llamacpp
+  provider: "ollama"
+
+  # Base URL for the inference API
+  url: "http://localhost:11434/v1"
+
+  # Local inference is slower than cloud - be patient
+  timeout_seconds: 120
+
+  # Retry on transient failures
+  retry_attempts: 3
+  retry_delay_seconds: 2
+
+  # Health monitoring
+  health_check:
+    enabled: true
+    endpoint: "/health"
+    interval_seconds: 30
+
+  # First inference is slow due to model loading - warm up on startup
+  warmup:
+    enabled: true
+    prompt: "Hello, this is a warmup prompt."
+
+# ============================================================================
+# COUNCIL COMPOSITION
+# Selected for BOTH capability AND epistemic diversity
+# ============================================================================
+council:
+  members:
+    - id: "phi"
+      model: "llama3.2:8b"
+      # Capability rationale (DevOps perspective)
+      capability: "Strong general reasoning and instruction following"
+      # Epistemic rationale (Philosophical perspective)
+      character: "Western analytical tradition, Silicon Valley optimism"
+      temperature: 0.7
+
+    - id: "psi"
+      model: "mistral:7b"
+      capability: "Excellent instruction following, structured outputs"
+      character: "European regulatory mindset, GDPR-informed caution"
+      temperature: 0.7
+
+    - id: "omega"
+      model: "qwen2.5:7b"
+      capability: "Diverse training corpus, multilingual strength"
+      character: "Eastern philosophical traditions, different cultural priors"
+      temperature: 0.7
+
+  chairman:
+    model: "llama3.2:70b"
+    capability: "Large context window needed for synthesis"
+    role: "Synthesizer and dissent-preserver, not arbiter of truth"
+    temperature: 0.3
+    preserve_dissent: true
+
+    # Fallback if 70B model unavailable (Decision Point #3: Allowed)
+    fallback:
+      enabled: true
+      prompt_user: true
+      message: "Chairman model unavailable. Use {fallback_model} for synthesis?"
+
+# ============================================================================
+# DELIBERATION PROCESS
+# How the council operates
+# ============================================================================
+deliberation:
+  stages:
+    # Stage 1: Gather independent perspectives
+    collect:
+      parallel: true
+      timeout_per_model_seconds: 60
+
+    # Stage 2: Anonymized peer review
+    review:
+      anonymize_models: true  # Prevent favoritism
+      require_rankings: true
+
+    # Stage 3: Chairman synthesis with dissent preservation
+    synthesize:
+      preserve_dissent: true
+      include_minority_reports: true
+
+  # What the user sees
+  transparency:
+    show_individual_responses: true
+    show_peer_reviews: true
+    highlight_disagreements: true
+    show_confidence_levels: true
+    include_minority_reports: true
+
+# ============================================================================
+# DEGRADATION POLICY
+# When resources are constrained, be transparent about it
+# ============================================================================
+degradation:
+  # NEVER silently degrade - the user must always know
+  silent_fallback: false
+
+  on_model_unavailable:
+    action: "prompt_user"  # Options: prompt_user | auto_skip | fail
+    message: "Council member unavailable. Continue with reduced epistemic diversity?"
+
+  on_chairman_unavailable:
+    action: "prompt_user"
+    fallback_to_largest_available: true
+    message: "Chairman unavailable. Use {fallback_model} for synthesis?"
+
+  # Decision Point #2: Minimum 2, warn below 3
+  minimum_council_size: 2
+  warn_below_size: 3
+  below_minimum_message: "Insufficient council members for meaningful deliberation."
+
+# ============================================================================
+# PERSISTENCE
+# Ephemeral by default - explicit save required
+# ============================================================================
+persistence:
+  # User-facing default: deliberations vanish on session close
+  default: "ephemeral"
+
+  # Operators can override for enterprise/compliance deployments
+  operator_can_override: true
+
+  # Consent banner - always shown, user can dismiss per session
+  # (Decision Point #5)
+  consent_banner:
+    always_show_on_session_start: true  # Operators CANNOT disable this
+    user_dismissable: true              # User can hide after acknowledging
+    persist_dismissal: "session_only"   # Re-shown on next session
+    text: "This deliberation will be forgotten when you close the session."
+
+  # When user explicitly saves (Decision Point #4: Encryption required)
+  save:
+    encryption: "required"  # No plaintext persistence allowed
+    algorithm: "AES-256-GCM"
+    key_source: "user_provided"  # Options: user_provided | derived | system
+
+  # Secure deletion when user chooses to forget
+  forget:
+    secure_overwrite: true
+    overwrite_passes: 3
+
+# ============================================================================
+# TELEMETRY
+# None. This is not negotiable.
+# ============================================================================
+telemetry:
+  enabled: false
+  # This comment IS the implementation:
+  # We do not track you because your intellectual struggles
+  # are not our training data, our metrics, or our business.
+
+# ============================================================================
+# HARDWARE REQUIREMENTS
+# Reference for deployment planning
+# ============================================================================
+hardware:
+  profiles:
+    minimum:
+      ram_gb: 16
+      vram_gb: 8
+      description: "Run 7B models sequentially, no 70B chairman"
+      chairman_fallback: "largest_7b"
+
+    recommended:
+      ram_gb: 32
+      vram_gb: 24
+      description: "Run multiple 7B models, 70B chairman quantized"
+      chairman_fallback: null
+
+    optimal:
+      ram_gb: 64
+      vram_gb: 48
+      description: "Full parallel inference, 70B chairman at full precision"
+      chairman_fallback: null
+
+# ============================================================================
+# LOGGING
+# Local only, privacy-respecting
+# ============================================================================
+logging:
+  level: "INFO"  # Options: DEBUG | INFO | WARNING | ERROR
+
+  # Logs never contain query content
+  redact_queries: true
+  redact_responses: true
+
+  # Rotate logs to prevent unbounded growth
+  rotation:
+    max_size_mb: 10
+    backup_count: 3
+
+  # Where logs go
+  output:
+    console: true
+    file: "logs/sovereign_council.log"

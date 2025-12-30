@@ -1,0 +1,28 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Local development
+.env
+.env.local
+*.log
+
+# Documentation
+*.md
+
+# Git
+.git/
+.gitignore
+
+# Testing
+coverage/
+.nyc_output/

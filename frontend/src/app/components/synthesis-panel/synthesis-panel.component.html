@@ -1,0 +1,145 @@
+<div class="synthesis-container">
+  <!-- Main Synthesis -->
+  <div class="card synthesis-main">
+    <div class="section-header">
+      <span class="header-icon">⚖️</span>
+      <h2>Council Synthesis</h2>
+    </div>
+
+    <div class="synthesis-content">{{ synthesis().content }}</div>
+
+    <!-- Confidence Score -->
+    @if (synthesis().confidence; as confidence) {
+      <div class="confidence-section">
+        <h3>Confidence Assessment</h3>
+        <div class="confidence-meters">
+          <div class="meter">
+            <span class="meter-label">Overall</span>
+            <div class="meter-track">
+              <div
+                class="meter-fill"
+                [class]="getConfidenceColor(confidence.overall)"
+                [style.width.%]="getConfidencePercentage(confidence.overall)"
+              ></div>
+            </div>
+            <span class="meter-value">{{ getConfidencePercentage(confidence.overall) }}%</span>
+          </div>
+          <div class="meter">
+            <span class="meter-label">Consensus</span>
+            <div class="meter-track">
+              <div
+                class="meter-fill"
+                [class]="getConfidenceColor(confidence.consensus_strength)"
+                [style.width.%]="getConfidencePercentage(confidence.consensus_strength)"
+              ></div>
+            </div>
+            <span class="meter-value">{{ getConfidencePercentage(confidence.consensus_strength) }}%</span>
+          </div>
+          <div class="meter">
+            <span class="meter-label">Dissent</span>
+            <div class="meter-track">
+              <div
+                class="meter-fill"
+                [class]="getConfidenceColor(confidence.dissent_strength)"
+                [style.width.%]="getConfidencePercentage(confidence.dissent_strength)"
+              ></div>
+            </div>
+            <span class="meter-value">{{ getConfidencePercentage(confidence.dissent_strength) }}%</span>
+          </div>
+        </div>
+        <p class="confidence-reasoning">{{ confidence.reasoning }}</p>
+      </div>
+    }
+  </div>
+
+  <!-- Consensus Points -->
+  @if (synthesis().consensus_points.length > 0) {
+    <div class="card consensus-card">
+      <h3><span>✓</span> Points of Agreement</h3>
+      <ul>
+        @for (point of synthesis().consensus_points; track point) {
+          <li>
+            <span class="bullet green">•</span>
+            {{ point }}
+          </li>
+        }
+      </ul>
+    </div>
+  }
+
+  <!-- Divisions -->
+  @if (synthesis().divisions.length > 0) {
+    <div class="card divisions-card">
+      <h3><span>⚡</span> Areas of Division</h3>
+      <ul>
+        @for (division of synthesis().divisions; track division) {
+          <li>
+            <span class="bullet yellow">•</span>
+            {{ division }}
+          </li>
+        }
+      </ul>
+    </div>
+  }
+
+  <!-- Unique Insights -->
+  @if (synthesis().unique_insights.length > 0) {
+    <div class="card insights-card">
+      <h3><span>💡</span> Unique Insights</h3>
+      <ul>
+        @for (insight of synthesis().unique_insights; track insight) {
+          <li>
+            <span class="bullet purple">•</span>
+            {{ insight }}
+          </li>
+        }
+      </ul>
+    </div>
+  }
+
+  <!-- Disagreements -->
+  @if (disagreements().length > 0) {
+    <div class="card disagreements-card">
+      <h3><span>🔍</span> Detailed Disagreements</h3>
+      <div class="disagreement-list">
+        @for (d of disagreements(); track d.topic) {
+          <div class="disagreement-item">
+            <div class="disagreement-header">
+              <h4>{{ d.topic }}</h4>
+              <span class="severity-badge" [class]="getSeverityClass(d.severity)">
+                {{ d.severity || 'moderate' }}
+              </span>
+            </div>
+            <p class="disagreement-desc">{{ d.description }}</p>
+            <div class="positions">
+              @for (pos of getPositionEntries(d.positions); track pos.key) {
+                <div class="position">
+                  <span class="position-member">{{ pos.key }}:</span>
+                  <span class="position-text">{{ pos.value }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Minority Reports -->
+  @if (minorityReports().length > 0) {
+    <div class="card minority-card">
+      <h3><span>📋</span> Minority Reports</h3>
+      <div class="minority-list">
+        @for (report of minorityReports(); track report.member_id) {
+          <div class="minority-item">
+            <div class="minority-header">
+              <span class="minority-member">{{ report.member_id }}</span>
+            </div>
+            <p class="minority-position">{{ report.position }}</p>
+            <p class="minority-rationale">{{ report.rationale }}</p>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

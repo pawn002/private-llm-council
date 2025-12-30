@@ -1,0 +1,79 @@
+.deliberation-view {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.question-header {
+  .question-content {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .question-text {
+    .label {
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin: 0 0 0.25rem;
+    }
+
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 500;
+      color: white;
+      margin: 0;
+    }
+
+    .meta {
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin: 0.5rem 0 0;
+    }
+  }
+
+  .question-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+
+    .btn {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+  }
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 1px solid var(--council-border);
+}
+
+.tab {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #9ca3af;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    color: white;
+  }
+
+  &.active {
+    color: var(--council-accent);
+    border-bottom-color: var(--council-accent);
+  }
+}
+
+.perspectives-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}

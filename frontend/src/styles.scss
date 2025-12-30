@@ -1,0 +1,150 @@
+/* Privacy-first dark theme for The Sovereign Council */
+
+:root {
+  --council-bg: #0f0f0f;
+  --council-surface: #1a1a1a;
+  --council-border: #2a2a2a;
+  --council-accent: #4a9eff;
+  --council-success: #22c55e;
+  --council-warning: #eab308;
+  --council-danger: #ef4444;
+
+  font-family: 'JetBrains Mono', 'Fira Code', monospace;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: var(--council-bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+/* Utility classes */
+.bg-council-bg { background-color: var(--council-bg); }
+.bg-council-surface { background-color: var(--council-surface); }
+.border-council-border { border-color: var(--council-border); }
+.text-council-accent { color: var(--council-accent); }
+.text-gray-100 { color: rgba(255, 255, 255, 0.87); }
+.text-gray-300 { color: #d1d5db; }
+.text-gray-400 { color: #9ca3af; }
+.text-gray-500 { color: #6b7280; }
+.text-white { color: #fff; }
+.text-green-400 { color: #4ade80; }
+.text-yellow-400 { color: #facc15; }
+.text-red-400 { color: #f87171; }
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--council-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3a3a3a;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4a4a4a;
+}
+
+/* Common button styles */
+.btn {
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.btn-primary {
+  background-color: var(--council-accent);
+  color: white;
+
+  &:hover:not(:disabled) {
+    background-color: #2563eb;
+  }
+}
+
+.btn-secondary {
+  background-color: var(--council-border);
+  color: #d1d5db;
+
+  &:hover:not(:disabled) {
+    background-color: #4b5563;
+  }
+}
+
+.btn-danger {
+  background-color: transparent;
+  color: var(--council-danger);
+
+  &:hover:not(:disabled) {
+    background-color: rgba(239, 68, 68, 0.1);
+  }
+}
+
+/* Form inputs */
+.input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: var(--council-bg);
+  border: 1px solid var(--council-border);
+  border-radius: 0.5rem;
+  color: white;
+  font-size: 1rem;
+
+  &:focus {
+    outline: none;
+    border-color: var(--council-accent);
+  }
+
+  &::placeholder {
+    color: #6b7280;
+  }
+}
+
+textarea.input {
+  resize: none;
+}
+
+/* Card styles */
+.card {
+  background-color: var(--council-surface);
+  border: 1px solid var(--council-border);
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+}
+
+/* Animations */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}

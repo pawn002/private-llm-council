@@ -1,0 +1,70 @@
+<div class="consent-banner" [class]="modeColor()">
+  <div class="banner-content">
+    <div class="banner-main">
+      <div class="banner-info">
+        <span class="mode-icon">{{ modeIcon() }}</span>
+        <div class="mode-details">
+          <h2>The Sovereign Council - Privacy First</h2>
+          @if (loading()) {
+            <p class="status-loading">Checking privacy status...</p>
+          } @else {
+            @if (status(); as s) {
+              <div class="status-row">
+                <span>
+                  Mode: <span class="accent">{{ s.mode.mode }}</span>
+                </span>
+                <span class="separator">|</span>
+                <span>
+                  Network:
+                  <span [class]="s.network_status.local_only ? 'text-green' : 'text-yellow'">
+                    {{ s.network_status.local_only ? 'Local Only' : 'External Detected' }}
+                  </span>
+                </span>
+                <span class="separator">|</span>
+                <span>
+                  Ollama:
+                  <span [class]="s.network_status.ollama_reachable ? 'text-green' : 'text-red'">
+                    {{ s.network_status.ollama_reachable ? 'Connected' : 'Unavailable' }}
+                  </span>
+                </span>
+              </div>
+            } @else {
+              <p class="status-error">
+                Unable to verify privacy status
+              </p>
+            }
+          }
+        </div>
+      </div>
+
+      <div class="banner-actions">
+        @if (status()?.warnings?.length) {
+          <div class="warning-count">
+            {{ status()!.warnings.length }} warning(s)
+          </div>
+        }
+        <button class="btn btn-secondary" (click)="onDismiss()">
+          Dismiss
+        </button>
+      </div>
+    </div>
+
+    @if (status()?.warnings?.length) {
+      <div class="warnings-list">
+        <ul>
+          @for (warning of status()!.warnings; track warning) {
+            <li>
+              <span class="warning-icon">⚠</span>
+              {{ warning }}
+            </li>
+          }
+        </ul>
+      </div>
+    }
+
+    <p class="privacy-note">
+      All processing happens locally. Your questions and deliberations never
+      leave your machine. This banner will reappear each session.
+    </p>
+  </div>
+</div>

@@ -1,0 +1,95 @@
+<!-- Idle State -->
+@if (state().phase === 'idle') {
+  <div class="council-idle">
+    <div class="header">
+      <h1>The Sovereign Council</h1>
+      <p>A privacy-first council of local LLMs ready to deliberate</p>
+    </div>
+
+    <form class="question-form" (ngSubmit)="onSubmit()">
+      <textarea
+        class="input"
+        [ngModel]="question()"
+        (ngModelChange)="updateQuestion($event)"
+        name="question"
+        placeholder="What question would you like the council to deliberate?"
+        rows="4"
+      ></textarea>
+
+      <div class="form-actions">
+        <button
+          type="submit"
+          class="btn btn-primary flex-1"
+          [disabled]="!question().trim()"
+        >
+          Convene the Council
+        </button>
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="onLoadClick()"
+        >
+          Load Saved
+        </button>
+      </div>
+    </form>
+
+    <div class="privacy-note">
+      <p>All processing happens locally on your machine.</p>
+      <p>Your questions never leave your device.</p>
+    </div>
+  </div>
+}
+
+<!-- Loading State -->
+@if (isLoading()) {
+  <div class="council-loading">
+    <div class="card loading-card">
+      <div class="loading-icon animate-pulse">{{ phaseIcons[state().phase] }}</div>
+      <h2>{{ phaseMessages[state().phase] }}</h2>
+      <p>{{ state().statusMessage }}</p>
+
+      <div class="progress-dots">
+        @for (p of phases; track p; let i = $index) {
+          <div
+            class="dot"
+            [class.active]="state().phase === p"
+            [class.complete]="getPhaseIndex(state().phase) > i"
+          ></div>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Error State -->
+@if (state().phase === 'error') {
+  <div class="council-error">
+    <div class="card error-card">
+      <div class="error-icon">❌</div>
+      <h2>Deliberation Failed</h2>
+      <p>{{ state().error }}</p>
+      <button class="btn btn-primary" (click)="onReset()">Try Again</button>
+    </div>
+  </div>
+}
+
+<!-- Complete State -->
+@if (state().phase === 'complete' && state().deliberation; as deliberation) {
+  <app-deliberation-view
+    [deliberation]="deliberation"
+    (saveClicked)="onSave()"
+    (newQuestion)="onReset()"
+  />
+}
+
+<!-- Save/Load Dialog -->
+<app-save-load-dialog
+  [mode]="dialogMode() ?? 'save'"
+  [isOpen]="dialogMode() !== null"
+  [deliberationId]="state().deliberation?.id"
+  (close)="closeDialog()"
+  (save)="handleSave($event)"
+  (load)="handleLoad($event)"
+  (forget)="handleForget()"
+/>

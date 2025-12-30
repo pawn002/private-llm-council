@@ -189,6 +189,8 @@ private-llm-council/
 | Recommended | 32GB | 24GB | Multiple 7B + quantized 70B chairman |
 | Optimal | 64GB | 48GB | Full parallel inference, 70B at full precision |
 
+For detailed hardware guidance including GPU comparisons, Apple Silicon support, and optimization tips, see [docs/HARDWARE_REQUIREMENTS.md](docs/HARDWARE_REQUIREMENTS.md).
+
 ## What This Is Not
 
 - **Not a cost-saving measure** - Local inference often costs more than cloud

@@ -35,13 +35,22 @@ See [MANIFESTO.md](MANIFESTO.md) for the full philosophy.
 
 ### Prerequisites
 
+**Standard Setup:**
 - Python 3.10+
 - [Ollama](https://ollama.ai/) running locally
 - 16GB+ RAM (32GB+ recommended)
 - GPU with 8GB+ VRAM (24GB+ recommended)
 
+**Modest Hardware Setup** (integrated GPU/laptop):
+- See [Modest Hardware Guide](docs/CONTRIBUTING_MODEST_HARDWARE.md)
+- 16GB RAM sufficient with ultra-light models (0.5-3B)
+- CPU-only mode supported
+- **Fast Mode**: 2-5 minute deliberations with 0.5-1B models
+- **Standard Mode**: 5-15 minute deliberations with 1-3B models
+
 ### Install Models
 
+**Standard Setup:**
 ```bash
 # Pull council member models
 ollama pull llama3.2:8b
@@ -52,6 +61,30 @@ ollama pull qwen2.5:7b
 ollama pull llama3.2:70b
 # Or use a smaller chairman if hardware-constrained:
 ollama pull llama3.2:8b
+```
+
+**Modest Hardware Setup** (integrated GPU/laptop):
+
+*Fast Mode (2-5 min deliberations):*
+```bash
+# Pull ultra-lightweight models
+ollama pull qwen2.5:0.5b  # ~600MB - fastest
+ollama pull llama3.2:1b   # ~1GB
+ollama pull tinyllama:1.1b # ~600MB
+
+# Use fast config
+CONFIG_PATH=config/sovereign_council_fast.yaml
+```
+
+*Standard Mode (5-15 min deliberations):*
+```bash
+# Pull light models
+ollama pull llama3.2:1b   # ~1GB
+ollama pull qwen2.5:3b    # ~2GB
+ollama pull llama3.2:3b   # ~2GB
+
+# Force CPU mode (often faster than integrated GPU)
+export OLLAMA_NUM_GPU=0
 ```
 
 ### Docker (Recommended)
@@ -138,7 +171,8 @@ This implementation reflects specific choices:
 |----------|-------------|
 | [MANIFESTO.md](MANIFESTO.md) | Project philosophy and values |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Technical architecture and design decisions |
-| [docs/HARDWARE_REQUIREMENTS.md](docs/HARDWARE_REQUIREMENTS.md) | Hardware sizing guide |
+| [docs/HARDWARE_REQUIREMENTS.md](docs/HARDWARE_REQUIREMENTS.md) | Hardware sizing guide (including Tier 0: Modest Hardware) |
+| [docs/CONTRIBUTING_MODEST_HARDWARE.md](docs/CONTRIBUTING_MODEST_HARDWARE.md) | Guide for contributors with laptops/integrated GPUs |
 | [docs/PRIOR_ART.md](docs/PRIOR_ART.md) | Related projects and how we differ |
 
 ## Project Structure
@@ -196,11 +230,15 @@ private-llm-council/
 
 ## Hardware Requirements
 
-| Profile | RAM | VRAM | Notes |
-|---------|-----|------|-------|
-| Minimum | 16GB | 8GB | 7B models only, sequential inference |
-| Recommended | 32GB | 24GB | Multiple 7B + quantized 70B chairman |
-| Optimal | 64GB | 48GB | Full parallel inference, 70B at full precision |
+| Profile | RAM | VRAM | Models | Deliberation Time | Notes |
+|---------|-----|------|--------|-------------------|-------|
+| Modest (Fast) | 16GB | Integrated GPU | 0.5-1B | **2-5 min** | Quick exploration, learning |
+| Modest (Standard) | 16GB | Integrated GPU | 1-3B | 5-15 min | Better quality, CPU mode |
+| Minimum | 16GB | 8GB | 7B | 3-5 min | Sequential inference |
+| Recommended | 32GB | 24GB | 7B + 70B | 1-2 min | Quantized 70B chairman |
+| Optimal | 64GB | 48GB | 7B + 70B | <1 min | Full parallel, full precision |
+
+**Have modest hardware?** Check out our [Modest Hardware Guide](docs/CONTRIBUTING_MODEST_HARDWARE.md) for optimization tips and contribution pathways.
 
 For detailed hardware guidance including GPU comparisons, Apple Silicon support, and optimization tips, see [docs/HARDWARE_REQUIREMENTS.md](docs/HARDWARE_REQUIREMENTS.md).
 
@@ -213,7 +251,14 @@ For detailed hardware guidance including GPU comparisons, Apple Silicon support,
 
 ## Contributing
 
-Contributions welcome. Please read [MANIFESTO.md](MANIFESTO.md) first to understand the values this project embodies.
+Contributions welcome! Please read [MANIFESTO.md](MANIFESTO.md) first to understand the values this project embodies.
+
+**Have modest hardware?** You can still contribute meaningfully! See [docs/CONTRIBUTING_MODEST_HARDWARE.md](docs/CONTRIBUTING_MODEST_HARDWARE.md) for ways to contribute without expensive hardware:
+- Documentation improvements
+- Frontend development (no models needed)
+- Configuration design
+- Unit tests
+- And more!
 
 ## License
 

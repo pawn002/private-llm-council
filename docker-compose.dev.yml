@@ -1,0 +1,32 @@
+# The Sovereign Council - Development Override
+# Use with: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    volumes:
+      # Mount source for hot reload
+      - ./backend/src:/app/src:ro
+      - ./config:/app/config:ro
+      - council-data:/app/data
+    environment:
+      - SOVEREIGN_COUNCIL_DEBUG=true
+    # Expose for direct API access during development
+    ports:
+      - "8000:8000"
+    command: ["python", "-m", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: builder
+    volumes:
+      - ./frontend/src:/app/src:ro
+    ports:
+      - "3000:5173"
+    command: ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

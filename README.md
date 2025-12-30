@@ -53,7 +53,25 @@ ollama pull llama3.2:70b
 ollama pull llama3.2:8b
 ```
 
-### Run the Backend
+### Docker (Recommended)
+
+```bash
+# Copy environment configuration
+cp .env.example .env
+
+# Start all services
+docker compose up -d
+
+# View logs
+docker compose logs -f
+
+# Stop services
+docker compose down
+```
+
+The UI will be available at `http://localhost:3000`.
+
+### Manual Installation
 
 ```bash
 cd backend
@@ -70,6 +88,16 @@ python -m src.main
 ```
 
 The API will be available at `http://localhost:8000`.
+
+For the frontend:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The UI will be available at `http://localhost:3000`.
 
 ### Test It
 
@@ -107,19 +135,34 @@ This implementation reflects specific value choices:
 
 ```
 private-llm-council/
-├── MANIFESTO.md           # Why this project exists
-├── README.md              # You are here
+├── MANIFESTO.md              # Why this project exists
+├── README.md                 # You are here
+├── docker-compose.yml        # Production deployment
+├── docker-compose.dev.yml    # Development override
+├── .env.example              # Environment configuration template
 ├── config/
 │   └── sovereign_council.yaml  # Configuration (values declaration)
 ├── backend/
-│   ├── pyproject.toml     # Python dependencies
-│   └── src/
-│       ├── main.py        # FastAPI application
-│       ├── config.py      # Configuration loader
-│       ├── privacy.py     # Privacy mode verification
-│       ├── gateway.py     # Inference gateway client
-│       └── council.py     # Deliberation orchestration
-└── frontend/              # (Coming soon)
+│   ├── Dockerfile            # Backend container
+│   ├── pyproject.toml        # Python dependencies
+│   ├── src/
+│   │   ├── main.py           # FastAPI application
+│   │   ├── config.py         # Configuration loader
+│   │   ├── privacy.py        # Privacy mode verification
+│   │   ├── gateway.py        # Inference gateway client
+│   │   ├── council.py        # Deliberation orchestration
+│   │   ├── analysis.py       # LLM-powered disagreement analysis
+│   │   └── persistence.py    # Encrypted storage
+│   └── tests/                # Test suite
+└── frontend/
+    ├── Dockerfile            # Frontend container
+    ├── nginx.conf            # Production web server config
+    ├── src/
+    │   ├── components/       # React components
+    │   ├── hooks/            # Custom React hooks
+    │   ├── api/              # API client
+    │   └── types/            # TypeScript definitions
+    └── ...
 ```
 
 ## API Endpoints
@@ -127,10 +170,16 @@ private-llm-council/
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/health` | GET | System health and privacy status |
-| `/consent-banner` | GET | Get consent banner text |
+| `/privacy/status` | GET | Current privacy verification |
+| `/privacy/consent-banner` | GET | Get consent banner text |
 | `/deliberate` | POST | Submit question for deliberation |
+| `/deliberate/stream` | GET | SSE streaming deliberation |
 | `/models` | GET | List available models |
-| `/privacy-status` | GET | Current privacy verification |
+| `/deliberations/save` | POST | Encrypt and save deliberation |
+| `/deliberations/load` | POST | Decrypt and load deliberation |
+| `/deliberations/forget` | POST | Securely delete deliberation |
+| `/deliberations` | GET | List saved deliberation IDs |
+| `/deliberations/{id}/exists` | GET | Check if deliberation exists |
 
 ## Hardware Requirements
 

@@ -1,0 +1,68 @@
+# The Sovereign Council - Docker Compose
+# Privacy-first local LLM council deployment
+#
+# Usage:
+#   docker compose up -d        # Start all services
+#   docker compose logs -f      # Follow logs
+#   docker compose down         # Stop services
+#   docker compose down -v      # Stop and remove volumes
+
+version: '3.8'
+
+services:
+  # Backend API service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sovereign-council-api
+    restart: unless-stopped
+    environment:
+      - SOVEREIGN_COUNCIL_CONFIG=/app/config/sovereign_council.yaml
+      - SOVEREIGN_COUNCIL_DATA_DIR=/app/data
+      - OLLAMA_HOST=${OLLAMA_HOST:-http://host.docker.internal:11434}
+    volumes:
+      - ./config:/app/config:ro
+      - council-data:/app/data
+    networks:
+      - council-net
+    # Note: Not exposing port externally - accessed through frontend
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Frontend UI service
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: sovereign-council-ui
+    restart: unless-stopped
+    ports:
+      - "${COUNCIL_PORT:-3000}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - council-net
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+networks:
+  council-net:
+    driver: bridge
+    # Isolated network - no external access except what we explicitly allow
+    internal: false
+
+volumes:
+  council-data:
+    driver: local

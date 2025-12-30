@@ -210,17 +210,31 @@ telemetry:
 # ============================================================================
 hardware:
   profiles:
+    modest_fast:
+      ram_gb: 16
+      vram_gb: "integrated"
+      description: "Ultra-lightweight models (0.5-1B), CPU mode, 2-5 min deliberations"
+      chairman_fallback: "1b_model"
+      config_file: "config/sovereign_council_fast.yaml"
+      notes: |
+        FAST MODE for time-constrained users. See:
+        - docs/CONTRIBUTING_MODEST_HARDWARE.md
+        - docs/HARDWARE_REQUIREMENTS.md (Tier 0 - Fast Mode)
+        Use: CONFIG_PATH=config/sovereign_council_fast.yaml
+        Performance: 2-5 minute full deliberations
+
     modest:
       ram_gb: 16
       vram_gb: "integrated"
-      description: "Ultra-light models (1-3B), CPU mode, integrated GPU"
+      description: "Light models (1-3B), CPU mode, 5-15 min deliberations"
       chairman_fallback: "3b_model"
       config_file: "config/sovereign_council_modest.yaml"
       notes: |
-        For laptops and integrated graphics. See:
+        STANDARD MODE for laptops and integrated graphics. See:
         - docs/CONTRIBUTING_MODEST_HARDWARE.md
         - docs/HARDWARE_REQUIREMENTS.md (Tier 0)
         Use: CONFIG_PATH=config/sovereign_council_modest.yaml
+        Performance: 5-15 minute full deliberations
 
     minimum:
       ram_gb: 16

@@ -1,0 +1,326 @@
+# ============================================================================
+# THE SOVEREIGN COUNCIL - Fast Deliberation Configuration
+# ============================================================================
+# Optimized for: SPEED on modest hardware (16GB RAM + integrated GPU)
+# Expected performance: 2-5 minute deliberations
+# Use case: Quick exploration, time-constrained users, rapid iteration
+# Trade-off: Smaller models = faster but less nuanced responses
+# ============================================================================
+
+# To use this configuration:
+# 1. Pull ultra-lightweight models:
+#    ollama pull qwen2.5:0.5b     # Smallest viable (600MB)
+#    ollama pull llama3.2:1b      # Meta's 1B model (~1GB)
+#    ollama pull tinyllama:1.1b   # Alternative 1B option (~600MB)
+#
+# 2. Force CPU-only mode (recommended for integrated GPUs):
+#    export OLLAMA_NUM_GPU=0
+#
+# 3. Start the backend:
+#    CONFIG_PATH=config/sovereign_council_fast.yaml python -m src.main
+#
+# Performance expectations:
+# - Single perspective: 30-60 seconds
+# - Full 3-member deliberation: 3-5 minutes
+# - Full 2-member deliberation: 2-3 minutes
+
+# ============================================================================
+# IDENTITY & VALUES
+# ============================================================================
+identity:
+  name: "The Sovereign Council (Fast Deliberation Mode)"
+  version: "0.1.0"
+  principle: |
+    Your deliberations belong to you.
+    Speed matters when time is limited.
+    Even small models can provide diverse perspectives.
+
+# ============================================================================
+# PRIVACY MODE
+# ============================================================================
+privacy:
+  mode: "sanctuary"
+
+  modes:
+    sovereign:
+      description: "Air-gapped operation. No network activity whatsoever."
+      network_check: "fail_if_any_interface_up"
+      deployment: "native_binary"
+
+    sanctuary:
+      description: "Local network only. Verified isolation from internet."
+      network_check: "fail_if_external_egress_possible"
+      deployment: "docker_host_network"
+      allowed_connections:
+        - "localhost"
+        - "127.0.0.1"
+        - "host.docker.internal"
+
+    citadel:
+      description: "Containerized with network policies. Easier deployment."
+      network_check: "warn_if_egress_possible"
+      deployment: "docker_compose"
+
+# ============================================================================
+# INFERENCE GATEWAY
+# ============================================================================
+gateway:
+  provider: "ollama"
+  url: "http://localhost:11434/v1"
+
+  # Shorter timeout for fast models
+  timeout_seconds: 90
+
+  retry_attempts: 2
+  retry_delay_seconds: 1
+
+  health_check:
+    enabled: true
+    endpoint: "/health"
+    interval_seconds: 30
+
+  # Skip warmup for faster startup
+  warmup:
+    enabled: false
+
+# ============================================================================
+# COUNCIL COMPOSITION - ULTRA-LIGHTWEIGHT MODELS (0.5-1B)
+# ============================================================================
+council:
+  members:
+    # 3-member council using smallest available models
+    # Each model provides epistemic diversity despite small size
+
+    - id: "phi"
+      model: "qwen2.5:0.5b"
+      capability: "Smallest viable model, Alibaba training"
+      character: "Chinese training corpus, diverse perspectives"
+      temperature: 0.7
+      notes: "0.5B params, ~600MB, 15-30 sec per response"
+
+    - id: "psi"
+      model: "llama3.2:1b"
+      capability: "Meta's ultra-light model, Western training"
+      character: "Silicon Valley perspective, analytical"
+      temperature: 0.7
+      notes: "1B params, ~1GB, 20-40 sec per response"
+
+    - id: "omega"
+      model: "tinyllama:1.1b"
+      capability: "Independent small model, efficient"
+      character: "Community-driven, pragmatic"
+      temperature: 0.7
+      notes: "1.1B params, ~600MB, 20-40 sec per response"
+
+    # Optional: Reduce to 2 members for even faster deliberation (2-3 min)
+    # Simply comment out one member above
+
+  chairman:
+    # Use lightest Meta model for synthesis
+    model: "llama3.2:1b"
+    capability: "Fast synthesis while preserving dissent"
+    role: "Synthesizer and dissent-preserver, not arbiter of truth"
+    temperature: 0.3
+    preserve_dissent: true
+
+    fallback:
+      enabled: true
+      prompt_user: true
+      message: "Chairman model unavailable. Use {fallback_model} for synthesis?"
+
+# ============================================================================
+# DELIBERATION PROCESS - OPTIMIZED FOR SPEED
+# ============================================================================
+deliberation:
+  stages:
+    # Stage 1: Gather independent perspectives
+    collect:
+      # Parallel inference if RAM allows, sequential if tight
+      parallel: false
+      # Shorter timeout for fast models
+      timeout_per_model_seconds: 60
+
+    # Stage 2: Anonymized peer review
+    review:
+      anonymize_models: true
+      require_rankings: true
+
+    # Stage 3: Chairman synthesis
+    synthesize:
+      preserve_dissent: true
+      include_minority_reports: true
+
+  # Full transparency maintained despite speed focus
+  transparency:
+    show_individual_responses: true
+    show_peer_reviews: true
+    highlight_disagreements: true
+    show_confidence_levels: true
+    include_minority_reports: true
+
+# ============================================================================
+# DEGRADATION POLICY
+# ============================================================================
+degradation:
+  silent_fallback: false
+
+  on_model_unavailable:
+    action: "prompt_user"
+    message: "Council member unavailable. Continue with reduced diversity?"
+
+  on_chairman_unavailable:
+    action: "prompt_user"
+    fallback_to_largest_available: true
+    message: "Chairman unavailable. Use {fallback_model} for synthesis?"
+
+  # Allow 2-member council for fastest deliberation (2-3 minutes)
+  minimum_council_size: 2
+  warn_below_size: 3
+  below_minimum_message: "Running with 2 members for maximum speed."
+
+# ============================================================================
+# PERSISTENCE
+# ============================================================================
+persistence:
+  default: "ephemeral"
+
+  operator_can_override: true
+
+  consent_banner:
+    always_show_on_session_start: true
+    user_dismissable: true
+    persist_dismissal: "session_only"
+    text: "This deliberation will be forgotten when you close the session."
+
+  save:
+    encryption: "required"
+    algorithm: "AES-256-GCM"
+    key_source: "user_provided"
+
+  forget:
+    secure_overwrite: true
+    overwrite_passes: 3
+
+# ============================================================================
+# TELEMETRY
+# ============================================================================
+telemetry:
+  enabled: false
+
+# ============================================================================
+# HARDWARE PROFILE
+# ============================================================================
+hardware:
+  profile: "fast"
+  specs:
+    ram_gb: 16
+    gpu_type: "integrated_or_cpu"
+    description: "Ultra-lightweight models optimized for speed"
+
+  optimization:
+    notes: |
+      FAST MODE CONFIGURATION TIPS:
+
+      1. CPU-only mode recommended (often faster than iGPU):
+         export OLLAMA_NUM_GPU=0
+
+      2. Model sizes:
+         - qwen2.5:0.5b   → 600MB
+         - llama3.2:1b    → 1GB
+         - tinyllama:1.1b → 600MB
+         Total: ~2.2GB loaded simultaneously
+
+      3. Memory footprint: 4-6GB total (system + models)
+
+      4. Performance on modern CPU:
+         - 3-member council: 3-5 minutes
+         - 2-member council: 2-3 minutes
+
+      5. When to use FAST mode:
+         - Time-constrained exploration
+         - Rapid iteration on prompts
+         - Testing configurations
+         - Learning the system
+
+      6. When NOT to use FAST mode:
+         - Critical decisions requiring nuance
+         - Complex ethical/philosophical questions
+         - When quality > speed matters
+         → Use sovereign_council_modest.yaml instead
+
+# ============================================================================
+# LOGGING
+# ============================================================================
+logging:
+  level: "INFO"
+
+  redact_queries: true
+  redact_responses: true
+
+  rotation:
+    max_size_mb: 10
+    backup_count: 3
+
+  output:
+    console: true
+    file: "logs/sovereign_council_fast.log"
+
+# ============================================================================
+# SPEED VS QUALITY TRADE-OFF
+# ============================================================================
+# This configuration prioritizes SPEED for modest hardware users.
+#
+# Performance comparison (modest hardware, CPU mode):
+#
+# CONFIG                      | MODELS        | TIME      | QUALITY
+# --------------------------- | ------------- | --------- | -------
+# sovereign_council_fast.yaml | 0.5-1B        | 2-5 min   | Basic
+# sovereign_council_modest.yaml | 1-3B        | 5-10 min  | Good
+# sovereign_council.yaml      | 7-70B         | 15-45 min | Excellent
+#
+# THE CORE VALUE REMAINS: Epistemic diversity through different models
+#
+# Even 0.5-1B models provide diverse perspectives because they're:
+# ✓ Trained on different datasets (Alibaba vs Meta vs community)
+# ✓ Different architectures and tokenizers
+# ✓ Different cultural/organizational origins
+# ✓ Different optimization objectives
+#
+# A council of small diverse models can still reveal disagreements
+# that a single larger model would miss.
+# ============================================================================
+
+# ============================================================================
+# REALISTIC EXPECTATIONS
+# ============================================================================
+# What to expect from ultra-lightweight models (0.5-1B):
+#
+# STRENGTHS:
+# - Fast inference (30-60 sec per perspective)
+# - Low memory usage (4-6GB total)
+# - Can reveal basic disagreements
+# - Good for factual/straightforward questions
+# - Excellent for learning the system
+#
+# LIMITATIONS:
+# - Less nuanced reasoning
+# - May miss subtle distinctions
+# - Shorter, more direct responses
+# - Less cultural/philosophical depth
+# - Better for concrete vs abstract questions
+#
+# RECOMMENDED USE CASES:
+# ✓ Quick exploration of ideas
+# ✓ Brainstorming sessions
+# ✓ Learning to use the council system
+# ✓ Testing different prompts rapidly
+# ✓ Time-constrained scenarios
+#
+# NOT RECOMMENDED FOR:
+# ✗ Critical life decisions
+# ✗ Complex ethical dilemmas
+# ✗ Deep philosophical questions
+# ✗ Nuanced policy analysis
+#
+# For important deliberations, allocate time for larger models.
+# ============================================================================

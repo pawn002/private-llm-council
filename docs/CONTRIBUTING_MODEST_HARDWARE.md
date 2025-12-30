@@ -224,20 +224,56 @@ def test_council_deliberation():
 
 If you want to test the actual deliberation system with modest hardware:
 
+### Choose Your Speed/Quality Balance
+
+**Option A: Fast Mode (2-5 minutes)** - New! ⚡
+- Ultra-lightweight models (0.5-1B)
+- Perfect for time-constrained exploration
+- Good for learning, testing, brainstorming
+
+**Option B: Standard Mode (5-15 minutes)**
+- Light models (1-3B)
+- Better quality, slower inference
+- Suitable for more thoughtful deliberation
+
 ### Step 1: Install Ollama
 
 ```bash
 # Install Ollama
 curl -fsSL https://ollama.ai/install.sh | sh
+```
 
-# Pull ultra-light models
+**For Fast Mode (2-5 min deliberations)**:
+```bash
+# Pull ultra-lightweight models
+ollama pull qwen2.5:0.5b   # ~600MB - smallest viable
+ollama pull llama3.2:1b    # ~1GB
+ollama pull tinyllama:1.1b # ~600MB - alternative
+```
+
+**For Standard Mode (5-15 min deliberations)**:
+```bash
+# Pull light models
 ollama pull llama3.2:1b    # ~1GB
 ollama pull qwen2.5:3b     # ~2GB
 ```
 
-### Step 2: Configure for Modest Hardware
+### Step 2: Choose Your Configuration
 
-Create `config/sovereign_council_modest.yaml`:
+**Option A: Use Pre-built Fast Mode Config** (Recommended for beginners):
+```bash
+# No config editing needed!
+CONFIG_PATH=config/sovereign_council_fast.yaml python -m src.main
+```
+
+**Option B: Use Pre-built Standard Modest Config**:
+```bash
+CONFIG_PATH=config/sovereign_council_modest.yaml python -m src.main
+```
+
+**Option C: Create Custom Config**:
+
+Create `config/sovereign_council_custom.yaml`:
 
 ```yaml
 council:
@@ -287,15 +323,19 @@ CONFIG_PATH=../config/sovereign_council_modest.yaml python -m src.main
 curl -X POST http://localhost:8000/deliberate \
   -H "Content-Type: application/json" \
   -d '{"question": "What is the benefit of local AI?"}'
-
-# Expect response in 5-10 minutes
 ```
 
 **Performance expectations**:
-- **2-member council + 3B chairman**: 5-10 minutes per deliberation
-- **Memory usage**: 6-10GB total
+
+| Mode | Deliberation Time | Memory | When to Use |
+|------|-------------------|---------|-------------|
+| **Fast** | 2-5 minutes | 4-6GB | Quick tests, learning, time-limited |
+| **Standard** | 5-15 minutes | 8-12GB | Better quality, more nuanced |
+
+**System behavior (both modes)**:
 - **CPU usage**: 80-100% during inference (normal)
 - **Temperature**: Laptop will get warm (use cooling pad)
+- **Progress**: Watch logs to see which model is currently responding
 
 ---
 
@@ -395,8 +435,30 @@ pytest tests/test_analysis.py -v
 
 ### Workflow 4: Light Model Testing
 
+**Fast Mode** (2-5 minutes - recommended for rapid iteration):
 ```bash
-# Pull small models
+# Pull ultra-lightweight models
+ollama pull qwen2.5:0.5b
+ollama pull llama3.2:1b
+ollama pull tinyllama:1.1b
+
+# Force CPU mode
+export OLLAMA_NUM_GPU=0
+ollama serve &
+
+# Test with fast config
+cd backend
+CONFIG_PATH=../config/sovereign_council_fast.yaml python -m src.main
+
+# Run a test deliberation (will take 2-5 minutes)
+curl -X POST http://localhost:8000/deliberate \
+  -H "Content-Type: application/json" \
+  -d '{"question": "Test question"}'
+```
+
+**Standard Mode** (5-15 minutes - better quality):
+```bash
+# Pull light models
 ollama pull llama3.2:1b
 ollama pull qwen2.5:3b
 
@@ -408,7 +470,7 @@ ollama serve &
 cd backend
 CONFIG_PATH=../config/sovereign_council_modest.yaml python -m src.main
 
-# Run a test deliberation (will take 5-10 minutes)
+# Run a test deliberation (will take 5-15 minutes)
 curl -X POST http://localhost:8000/deliberate \
   -H "Content-Type: application/json" \
   -d '{"question": "Test question"}'

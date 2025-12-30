@@ -61,6 +61,32 @@ council:
     model: "llama3.2:3b"
 ```
 
+**🚀 Fast Mode - For Time-Constrained Users**:
+
+If 5-15 minute deliberations are too slow, try **ultra-lightweight models** (0.5-1B):
+
+```yaml
+# Fast deliberation: 2-5 minutes total
+council:
+  members:
+    - id: "phi"
+      model: "qwen2.5:0.5b"   # 600MB, 30-60 sec per response
+    - id: "psi"
+      model: "llama3.2:1b"    # 1GB, 30-60 sec per response
+  chairman:
+    model: "llama3.2:1b"
+```
+
+**Performance: 2-5 minute deliberations** (vs 5-15 min with 3B models)
+
+**Trade-off**: Faster but less nuanced. Good for:
+- ✓ Quick exploration and brainstorming
+- ✓ Learning the system
+- ✓ Testing configurations
+- ✗ NOT for critical decisions requiring depth
+
+See `config/sovereign_council_fast.yaml` for complete fast mode setup.
+
 **Estimated Cost**:
 - Using existing laptop: $0
 - Purpose-built laptop: $500-800 USD (16GB RAM minimum)
@@ -74,11 +100,25 @@ council:
 | Desktop iGPU | Intel UHD 770 | 16GB | CPU mode recommended |
 
 **Performance Expectations**:
+
+| Configuration | Model Sizes | Single Response | Full Deliberation | Memory | Use Case |
+|---------------|-------------|-----------------|-------------------|---------|----------|
+| **Fast Mode** | 0.5-1B | 30-60 sec | **2-5 min** | 4-6GB | Quick exploration, time-limited |
+| **Standard** | 1-3B | 2-5 min | 5-15 min | 8-12GB | Balanced quality/speed |
+
+**Detailed Metrics (Standard 1-3B models)**:
 - **Model Loading**: 10-30 seconds per model
 - **Inference Speed**: 5-15 tokens/second (vs 50-100 on dedicated GPU)
 - **Single Response**: 2-5 minutes
 - **Full Deliberation**: 8-15 minutes (3 perspectives + synthesis)
 - **Memory Usage**: 8-12GB total (system + models)
+
+**Fast Mode (0.5-1B models)** - New!:
+- **Model Loading**: 5-10 seconds per model
+- **Inference Speed**: 10-20 tokens/second
+- **Single Response**: 30-60 seconds
+- **Full Deliberation**: 2-5 minutes (3 perspectives + synthesis)
+- **Memory Usage**: 4-6GB total (much lighter!)
 
 **Optimization Tips for Integrated GPUs**:
 
@@ -95,8 +135,14 @@ council:
 
 3. **Use ultra-light models**:
    ```bash
+   # Standard modest hardware (5-15 min deliberations)
    ollama pull llama3.2:1b    # 1B parameter model (~1GB)
    ollama pull qwen2.5:3b     # 3B parameter model (~2GB)
+
+   # FAST MODE (2-5 min deliberations) - New!
+   ollama pull qwen2.5:0.5b   # 0.5B model (~600MB) - fastest
+   ollama pull llama3.2:1b    # 1B model (~1GB)
+   ollama pull tinyllama:1.1b # 1.1B model (~600MB) - alternative
    ```
 
 4. **Close background applications**:

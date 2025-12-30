@@ -1,18 +1,17 @@
-import { Component, Input } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, input } from '@angular/core';
 import { Synthesis, Disagreement, MinorityReport } from '../../models';
 
 @Component({
   selector: 'app-synthesis-panel',
   standalone: true,
-  imports: [CommonModule],
   templateUrl: './synthesis-panel.component.html',
   styleUrls: ['./synthesis-panel.component.scss'],
 })
 export class SynthesisPanelComponent {
-  @Input() synthesis!: Synthesis;
-  @Input() disagreements: Disagreement[] = [];
-  @Input() minorityReports: MinorityReport[] = [];
+  // Signal-based inputs
+  readonly synthesis = input.required<Synthesis>();
+  readonly disagreements = input<Disagreement[]>([]);
+  readonly minorityReports = input<MinorityReport[]>([]);
 
   getConfidencePercentage(value: number): number {
     return Math.round(value * 100);

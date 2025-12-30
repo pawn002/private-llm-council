@@ -1,5 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, input, output, signal, computed } from '@angular/core';
 import { Deliberation } from '../../models';
 import { PerspectiveCardComponent } from '../perspective-card/perspective-card.component';
 import { SynthesisPanelComponent } from '../synthesis-panel/synthesis-panel.component';
@@ -7,25 +6,35 @@ import { SynthesisPanelComponent } from '../synthesis-panel/synthesis-panel.comp
 @Component({
   selector: 'app-deliberation-view',
   standalone: true,
-  imports: [CommonModule, PerspectiveCardComponent, SynthesisPanelComponent],
+  imports: [PerspectiveCardComponent, SynthesisPanelComponent],
   templateUrl: './deliberation-view.component.html',
   styleUrls: ['./deliberation-view.component.scss'],
 })
 export class DeliberationViewComponent {
-  @Input() deliberation!: Deliberation;
-  @Output() saveClicked = new EventEmitter<void>();
-  @Output() newQuestion = new EventEmitter<void>();
+  // Signal-based inputs
+  readonly deliberation = input.required<Deliberation>();
 
-  expandedPerspective: string | null = null;
-  activeTab: 'synthesis' | 'perspectives' = 'synthesis';
+  // Signal-based outputs
+  readonly saveClicked = output<void>();
+  readonly newQuestion = output<void>();
 
-  get formattedTimestamp(): string {
-    return new Date(this.deliberation.timestamp).toLocaleString();
-  }
+  // Local state signals
+  readonly expandedPerspective = signal<string | null>(null);
+  readonly activeTab = signal<'synthesis' | 'perspectives'>('synthesis');
+
+  // Computed signals
+  readonly formattedTimestamp = computed(() => {
+    return new Date(this.deliberation().timestamp).toLocaleString();
+  });
 
   togglePerspective(memberId: string): void {
-    this.expandedPerspective =
-      this.expandedPerspective === memberId ? null : memberId;
+    this.expandedPerspective.update(current =>
+      current === memberId ? null : memberId
+    );
+  }
+
+  setActiveTab(tab: 'synthesis' | 'perspectives'): void {
+    this.activeTab.set(tab);
   }
 
   onSave(): void {

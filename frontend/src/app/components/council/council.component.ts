@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, signal, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { DeliberationService } from '../../services/deliberation.service';
 import { DeliberationViewComponent } from '../deliberation-view/deliberation-view.component';
 import { SaveLoadDialogComponent } from '../save-load-dialog/save-load-dialog.component';
@@ -10,7 +10,6 @@ import { DeliberationPhase } from '../../models';
   selector: 'app-council',
   standalone: true,
   imports: [
-    CommonModule,
     FormsModule,
     DeliberationViewComponent,
     SaveLoadDialogComponent,
@@ -19,10 +18,24 @@ import { DeliberationPhase } from '../../models';
   styleUrls: ['./council.component.scss'],
 })
 export class CouncilComponent {
-  question = '';
-  dialogMode: 'save' | 'load' | null = null;
+  private readonly deliberationService = inject(DeliberationService);
 
-  phaseMessages: Record<DeliberationPhase, string> = {
+  // Local state signals
+  readonly question = signal('');
+  readonly dialogMode = signal<'save' | 'load' | null>(null);
+
+  // Convert service observable to signal
+  readonly state = toSignal(this.deliberationService.state$, {
+    initialValue: this.deliberationService.state,
+  });
+
+  // Computed signals
+  readonly isLoading = computed(() => {
+    const phase = this.state().phase;
+    return ['gathering', 'reviewing', 'synthesizing', 'analyzing'].includes(phase);
+  });
+
+  readonly phaseMessages: Record<DeliberationPhase, string> = {
     idle: '',
     gathering: 'Gathering perspectives from council members...',
     reviewing: 'Council members reviewing each other...',
@@ -32,7 +45,7 @@ export class CouncilComponent {
     error: 'An error occurred',
   };
 
-  phaseIcons: Record<DeliberationPhase, string> = {
+  readonly phaseIcons: Record<DeliberationPhase, string> = {
     idle: '',
     gathering: '🎭',
     reviewing: '👁️',
@@ -42,31 +55,26 @@ export class CouncilComponent {
     error: '❌',
   };
 
-  phases: DeliberationPhase[] = ['gathering', 'reviewing', 'synthesizing', 'analyzing'];
-
-  constructor(public deliberationService: DeliberationService) {}
-
-  get state() {
-    return this.deliberationService.state;
-  }
-
-  get isLoading() {
-    return this.deliberationService.isLoading;
-  }
+  readonly phases: DeliberationPhase[] = ['gathering', 'reviewing', 'synthesizing', 'analyzing'];
 
   onSubmit(): void {
-    if (this.question.trim() && !this.isLoading) {
-      this.deliberationService.ask(this.question.trim());
-      this.question = '';
+    const q = this.question().trim();
+    if (q && !this.isLoading()) {
+      this.deliberationService.ask(q);
+      this.question.set('');
     }
   }
 
+  updateQuestion(value: string): void {
+    this.question.set(value);
+  }
+
   onSave(): void {
-    this.dialogMode = 'save';
+    this.dialogMode.set('save');
   }
 
   onLoadClick(): void {
-    this.dialogMode = 'load';
+    this.dialogMode.set('load');
   }
 
   onReset(): void {
@@ -76,26 +84,26 @@ export class CouncilComponent {
   async handleSave(passphrase: string): Promise<void> {
     const success = await this.deliberationService.save(passphrase);
     if (success) {
-      this.dialogMode = null;
+      this.dialogMode.set(null);
     }
   }
 
   async handleLoad(data: { id: string; passphrase: string }): Promise<void> {
     const success = await this.deliberationService.load(data.id, data.passphrase);
     if (success) {
-      this.dialogMode = null;
+      this.dialogMode.set(null);
     }
   }
 
   async handleForget(): Promise<void> {
     const success = await this.deliberationService.forget();
     if (success) {
-      this.dialogMode = null;
+      this.dialogMode.set(null);
     }
   }
 
   closeDialog(): void {
-    this.dialogMode = null;
+    this.dialogMode.set(null);
   }
 
   getPhaseIndex(phase: DeliberationPhase): number {

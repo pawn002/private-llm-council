@@ -1,20 +1,21 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, input, output, computed } from '@angular/core';
 import { Perspective } from '../../models';
 
 @Component({
   selector: 'app-perspective-card',
   standalone: true,
-  imports: [CommonModule],
   templateUrl: './perspective-card.component.html',
   styleUrls: ['./perspective-card.component.scss'],
 })
 export class PerspectiveCardComponent {
-  @Input() perspective!: Perspective;
-  @Input() isExpanded = false;
-  @Output() toggle = new EventEmitter<void>();
+  // Signal-based inputs
+  readonly perspective = input.required<Perspective>();
+  readonly isExpanded = input(false);
 
-  private memberColors: Record<string, string> = {
+  // Signal-based output
+  readonly toggle = output<void>();
+
+  private readonly memberColors: Record<string, string> = {
     phi: 'border-blue',
     psi: 'border-purple',
     omega: 'border-amber',
@@ -22,7 +23,7 @@ export class PerspectiveCardComponent {
     delta: 'border-red',
   };
 
-  private memberIcons: Record<string, string> = {
+  private readonly memberIcons: Record<string, string> = {
     phi: 'Φ',
     psi: 'Ψ',
     omega: 'Ω',
@@ -30,20 +31,19 @@ export class PerspectiveCardComponent {
     delta: 'Δ',
   };
 
-  get borderColor(): string {
-    return this.memberColors[this.perspective.member_id] || 'border-gray';
-  }
+  // Computed signals for derived state
+  readonly borderColor = computed(() => {
+    return this.memberColors[this.perspective().member_id] || 'border-gray';
+  });
 
-  get icon(): string {
-    return (
-      this.memberIcons[this.perspective.member_id] ||
-      this.perspective.member_id[0].toUpperCase()
-    );
-  }
+  readonly icon = computed(() => {
+    const p = this.perspective();
+    return this.memberIcons[p.member_id] || p.member_id[0].toUpperCase();
+  });
 
-  get formattedTimestamp(): string {
-    return new Date(this.perspective.timestamp).toLocaleString();
-  }
+  readonly formattedTimestamp = computed(() => {
+    return new Date(this.perspective().timestamp).toLocaleString();
+  });
 
   onToggle(): void {
     this.toggle.emit();

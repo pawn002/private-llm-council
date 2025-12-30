@@ -4,11 +4,11 @@
     <div class="question-content">
       <div class="question-text">
         <p class="label">Question</p>
-        <h1>{{ deliberation.question }}</h1>
+        <h1>{{ deliberation().question }}</h1>
         <p class="meta">
-          {{ deliberation.perspectives.length }} perspectives ·
-          {{ deliberation.disagreements.length }} disagreements ·
-          {{ formattedTimestamp }}
+          {{ deliberation().perspectives.length }} perspectives ·
+          {{ deliberation().disagreements.length }} disagreements ·
+          {{ formattedTimestamp() }}
         </p>
       </div>
       <div class="question-actions">
@@ -26,36 +26,38 @@
   <div class="tabs">
     <button
       class="tab"
-      [class.active]="activeTab === 'synthesis'"
-      (click)="activeTab = 'synthesis'"
+      [class.active]="activeTab() === 'synthesis'"
+      (click)="setActiveTab('synthesis')"
     >
       Synthesis
     </button>
     <button
       class="tab"
-      [class.active]="activeTab === 'perspectives'"
-      (click)="activeTab = 'perspectives'"
+      [class.active]="activeTab() === 'perspectives'"
+      (click)="setActiveTab('perspectives')"
     >
-      Perspectives ({{ deliberation.perspectives.length }})
+      Perspectives ({{ deliberation().perspectives.length }})
     </button>
   </div>
 
   <!-- Tab Content -->
   <div class="tab-content">
-    <app-synthesis-panel
-      *ngIf="activeTab === 'synthesis'"
-      [synthesis]="deliberation.synthesis"
-      [disagreements]="deliberation.disagreements"
-      [minorityReports]="deliberation.minority_reports"
-    ></app-synthesis-panel>
-
-    <div class="perspectives-list" *ngIf="activeTab === 'perspectives'">
-      <app-perspective-card
-        *ngFor="let perspective of deliberation.perspectives"
-        [perspective]="perspective"
-        [isExpanded]="expandedPerspective === perspective.member_id"
-        (toggle)="togglePerspective(perspective.member_id)"
-      ></app-perspective-card>
-    </div>
+    @if (activeTab() === 'synthesis') {
+      <app-synthesis-panel
+        [synthesis]="deliberation().synthesis"
+        [disagreements]="deliberation().disagreements"
+        [minorityReports]="deliberation().minority_reports"
+      />
+    } @else {
+      <div class="perspectives-list">
+        @for (perspective of deliberation().perspectives; track perspective.member_id) {
+          <app-perspective-card
+            [perspective]="perspective"
+            [isExpanded]="expandedPerspective() === perspective.member_id"
+            (toggle)="togglePerspective(perspective.member_id)"
+          />
+        }
+      </div>
+    }
   </div>
 </div>

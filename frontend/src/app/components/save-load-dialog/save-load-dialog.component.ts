@@ -1,89 +1,88 @@
-import { Component, EventEmitter, Input, Output, OnInit, OnChanges, SimpleChanges } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, input, output, effect, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
 
 @Component({
   selector: 'app-save-load-dialog',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [FormsModule],
   templateUrl: './save-load-dialog.component.html',
   styleUrls: ['./save-load-dialog.component.scss'],
 })
-export class SaveLoadDialogComponent implements OnInit, OnChanges {
-  @Input() mode: 'save' | 'load' = 'save';
-  @Input() isOpen = false;
-  @Input() deliberationId?: string;
+export class SaveLoadDialogComponent {
+  private readonly api = inject(ApiService);
 
-  @Output() close = new EventEmitter<void>();
-  @Output() save = new EventEmitter<string>();
-  @Output() load = new EventEmitter<{ id: string; passphrase: string }>();
-  @Output() forget = new EventEmitter<void>();
+  // Signal-based inputs
+  readonly mode = input<'save' | 'load'>('save');
+  readonly isOpen = input(false);
+  readonly deliberationId = input<string>();
 
-  passphrase = '';
-  confirmPassphrase = '';
-  selectedId = '';
-  savedIds: string[] = [];
-  loading = false;
-  error = '';
+  // Signal-based outputs
+  readonly close = output<void>();
+  readonly save = output<string>();
+  readonly load = output<{ id: string; passphrase: string }>();
+  readonly forget = output<void>();
 
-  constructor(private api: ApiService) {}
+  // Local state signals
+  readonly passphrase = signal('');
+  readonly confirmPassphrase = signal('');
+  readonly selectedId = signal('');
+  readonly savedIds = signal<string[]>([]);
+  readonly loading = signal(false);
+  readonly error = signal('');
 
-  ngOnInit(): void {
-    this.loadSavedIds();
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['isOpen']) {
-      if (this.isOpen) {
+  constructor() {
+    // Effect to handle dialog open/close
+    effect(() => {
+      if (this.isOpen()) {
         this.loadSavedIds();
       } else {
         this.resetForm();
       }
-    }
+    });
   }
 
   private loadSavedIds(): void {
-    if (this.mode === 'load') {
+    if (this.mode() === 'load') {
       this.api.listDeliberations().subscribe({
-        next: (ids) => (this.savedIds = ids),
-        error: () => (this.savedIds = []),
+        next: (ids) => this.savedIds.set(ids),
+        error: () => this.savedIds.set([]),
       });
     }
   }
 
   private resetForm(): void {
-    this.passphrase = '';
-    this.confirmPassphrase = '';
-    this.error = '';
+    this.passphrase.set('');
+    this.confirmPassphrase.set('');
+    this.error.set('');
   }
 
   onSave(): void {
-    if (this.passphrase.length < 8) {
-      this.error = 'Passphrase must be at least 8 characters';
+    if (this.passphrase().length < 8) {
+      this.error.set('Passphrase must be at least 8 characters');
       return;
     }
-    if (this.passphrase !== this.confirmPassphrase) {
-      this.error = 'Passphrases do not match';
+    if (this.passphrase() !== this.confirmPassphrase()) {
+      this.error.set('Passphrases do not match');
       return;
     }
 
-    this.error = '';
-    this.save.emit(this.passphrase);
+    this.error.set('');
+    this.save.emit(this.passphrase());
   }
 
   onLoad(): void {
-    if (!this.selectedId) {
-      this.error = 'Please select a deliberation';
+    if (!this.selectedId()) {
+      this.error.set('Please select a deliberation');
       return;
     }
-    if (!this.passphrase) {
-      this.error = 'Please enter the passphrase';
+    if (!this.passphrase()) {
+      this.error.set('Please enter the passphrase');
       return;
     }
 
-    this.error = '';
-    this.load.emit({ id: this.selectedId, passphrase: this.passphrase });
+    this.error.set('');
+    this.load.emit({ id: this.selectedId(), passphrase: this.passphrase() });
   }
 
   onForget(): void {
@@ -94,5 +93,18 @@ export class SaveLoadDialogComponent implements OnInit, OnChanges {
 
   onClose(): void {
     this.close.emit();
+  }
+
+  // Two-way binding helpers for ngModel
+  updatePassphrase(value: string): void {
+    this.passphrase.set(value);
+  }
+
+  updateConfirmPassphrase(value: string): void {
+    this.confirmPassphrase.set(value);
+  }
+
+  updateSelectedId(value: string): void {
+    this.selectedId.set(value);
   }
 }

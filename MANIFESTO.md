@@ -1,139 +1,148 @@
-# The Sovereign Council Manifesto
+# The Private Council Manifesto
 
 ## Why This Project Exists
 
-You are standing at a strange moment in history.
+We're living in a fascinating moment in technology.
 
-For the first time, machines can engage in something resembling dialogue. They can consider your questions, offer perspectives, even disagree with each other. This is remarkable.
+For the first time, machines can engage in something resembling dialogue. They can consider your questions, offer perspectives, and even disagree with each other. This opens up remarkable possibilities for thinking through complex problems.
 
-What is less remarkable—what is, in fact, deeply ordinary—is that nearly every system offering this capability extracts a toll: your questions become their data. Your intellectual struggles become their training signal. Your private deliberations become rows in a database you will never see, governed by policies you did not write, serving interests that are not yours.
+Several projects now offer local LLM council functionality—and we acknowledge their contributions (see [Prior Art](docs/PRIOR_ART.md)). This project exists not to replicate what's already been done, but to focus on what others haven't: **preserving minority opinions and making disagreement visible**.
 
-This project exists because we believe that toll is not inevitable.
-
----
-
-## The Core Assertion
-
-**Your deliberations belong to you.**
-
-This is not a feature. It is not a privacy "mode" that can be toggled. It is the architectural foundation upon which everything else is built.
-
-When you ask a difficult question—about your health, your relationships, your career, your beliefs—you are engaging in an act of intellectual intimacy. The space in which that intimacy occurs matters. A private study and a public square are not the same, even if the words spoken are identical.
-
-Cloud AI services have collapsed this distinction. You type as if in private, but you speak into infrastructure you do not control, logged by entities whose interests may diverge from yours, retained for durations you cannot specify, used for purposes you did not authorize.
-
-The Sovereign Council restores the distinction. Your machine. Your models. Your deliberation. Your choice about what persists and what is forgotten.
+Most multi-model systems optimize for consensus. We believe the dissenting voice often contains the insight you need most.
 
 ---
 
-## What We Are Building
+## The Core Idea
+
+**Your deliberations can remain entirely yours.**
+
+When you work through difficult questions—about your health, your relationships, your career, your beliefs—you're engaging in personal reflection. Some people prefer that reflection to happen in a space they fully control.
+
+Cloud AI services are convenient and powerful, but they necessarily involve sending your queries to external infrastructure. For many use cases, this is perfectly fine. For others, having a fully local alternative is valuable.
+
+The Private Council offers that alternative. Your machine. Your models. Your deliberation. Your choice about what persists and what is forgotten.
+
+---
+
+## What We're Building
 
 A council of locally-hosted language models that:
 
 1. **Deliberate on your behalf** — Multiple models consider your question independently, review each other's responses, and synthesize a final answer that preserves dissent.
 
-2. **Operate within your domain** — No query leaves your machine. No response is logged externally. No telemetry phones home.
+2. **Operate locally** — No query leaves your machine. No response is logged externally. No telemetry is collected.
 
-3. **Respect impermanence** — Deliberations are ephemeral by default. You must consciously choose to save. What you save is encrypted with keys you control.
+3. **Respect impermanence** — Deliberations are ephemeral by default. You choose what to save. What you save is encrypted with keys you control.
 
-4. **Surface disagreement** — When models disagree, you see it. The minority report is not hidden. The chairman synthesizes but does not silence.
+4. **Surface disagreement** — When models disagree, you see it. The minority report is visible. The chairman synthesizes but does not suppress.
 
-5. **Honor diverse perspectives** — We deliberately select models from different origins, trained on different corpora, shaped by different cultures. The council should argue, not agree.
+5. **Offer diverse perspectives** — We select models from different origins, trained on different data, shaped by different approaches. The council provides variety, not uniformity.
 
 ---
 
-## What We Are Not Building
+## What Sets Us Apart
 
-**Not a cost-saving measure.** Local inference is often more expensive than cloud APIs when you account for hardware costs. We are not here to save money. We are here to change who controls the conversation.
+Other local LLM council implementations exist. Here's what we do differently:
+
+| Feature | Typical Approach | Our Approach |
+|---------|------------------|--------------|
+| Disagreement | Smoothed over in synthesis | Highlighted and preserved |
+| Minority opinions | Discarded after voting | Visible as minority reports |
+| Privacy | Single mode | Tiered: Sovereign, Sanctuary, Citadel |
+| Persistence | Varies | Ephemeral by default, encrypted on save |
+
+We're not claiming to be first. We're claiming to care about things others don't prioritize.
+
+---
+
+## What We're Not Building
+
+**Not a cost-saving measure.** Local inference often costs more than cloud APIs when you account for hardware. This project is about control, not cost.
 
 **Not a performance optimization.** Local models are generally slower than cloud endpoints with dedicated accelerators. We accept this trade-off.
 
-**Not a paranoid overreaction.** The belief that your thoughts are worth protecting is not paranoia. It is dignity.
+**Not a criticism of cloud services.** Cloud AI has legitimate uses and offers convenience many users prefer. We simply offer an alternative for those who want it.
 
-**Not a product.** There is no business model. There is no telemetry. There is no "premium tier." This is a tool, offered to those who want it.
+**Not a product.** There is no business model. There is no telemetry. There is no "premium tier." This is a tool for those who find it useful.
+
+**Not claiming to be first.** Other local council implementations exist and deserve credit. See [Prior Art](docs/PRIOR_ART.md).
 
 ---
 
-## The Privacy Mode Spectrum
+## Privacy Modes
 
-We recognize that different users have different threat models and different tolerance for friction. Rather than impose a single stance, we offer three modes:
+Different users have different needs and different tolerance for complexity. We offer three modes:
 
 ### Sovereign Mode
-The uncompromising position. No network interfaces active. Models loaded from local storage. True air-gap. For those who need—or simply want—absolute isolation.
+Maximum isolation. No network interfaces active. Models loaded from local storage. True air-gap capability.
 
 ### Sanctuary Mode (Default)
-The balanced position. Local network only. Startup verification that no external egress is possible. Practical for most threat models while maintaining strong privacy guarantees.
+Local network only. Startup verification that no external connections occur. Practical for most users while maintaining strong privacy.
 
 ### Citadel Mode
-The operational convenience position. Containerized deployment with network policies. Easier to deploy and maintain. Still no external data transmission, but relies on policy rather than physical isolation.
+Containerized deployment with network policies. Easier to deploy and maintain. Still fully local, using software controls rather than physical isolation.
 
-You choose your position. We do not choose it for you.
+You choose your position based on your own needs.
 
 ---
 
-## On Epistemic Diversity
+## On Diverse Perspectives
 
-The original llm-council concept queries multiple cloud models and has them review each other's work. This is valuable—truth emerges from the collision of perspectives.
+The original llm-council concept queries multiple cloud models and has them review each other's work. Truth often emerges from the consideration of multiple perspectives.
 
-But cloud providers increasingly converge. Similar training data. Similar RLHF. Similar safety tuning. The "multiple perspectives" become variations on a theme, not genuine disagreement.
+We select models from different origins to maximize the diversity of viewpoints:
 
-We deliberately select models from divergent origins:
+- **Different training approaches** — Models shaped by different methodologies and priorities
+- **Different regional contexts** — Models developed in different regulatory and cultural environments
+- **Different philosophical leanings** — Models with different implicit assumptions about reasoning
 
-- **Western analytical tradition** — Models shaped by Silicon Valley optimism and utilitarian reasoning
-- **European regulatory mindset** — Models trained in contexts shaped by GDPR and precautionary principles
-- **Eastern philosophical traditions** — Models from different cultural contexts with different priors about hierarchy, harmony, and individual vs. collective
-
-The goal is not "better" answers. The goal is *genuinely different* perspectives on your question. When the council agrees, that agreement means something. When they disagree, you see the full shape of that disagreement.
+The goal is to give you genuinely different perspectives on your question. When the council agrees, that agreement is meaningful. When they disagree, you see the full shape of that disagreement.
 
 ---
 
 ## On Transparency
 
-The chairman model synthesizes the council's deliberation into a final response. But synthesis is not suppression. We commit to:
+The chairman model synthesizes the council's deliberation into a final response. But synthesis preserves nuance:
 
-- **Showing individual responses** — You can see what each council member said
-- **Highlighting disagreements** — Fundamental conflicts are surfaced, not smoothed over
-- **Preserving minority reports** — When a model was outvoted, its dissent is available
-- **Indicating confidence** — Where the synthesis is consensus vs. chairman's judgment call
+- **Individual responses visible** — You can see what each council member said
+- **Disagreements highlighted** — Fundamental conflicts are surfaced, not hidden
+- **Minority reports preserved** — When a model was outvoted, its perspective remains available
+- **Confidence indicated** — Where the synthesis reflects consensus vs. judgment calls
 
-You are not receiving an oracle's pronouncement. You are observing a philosophical dialogue, with all its tensions intact.
+You're not receiving a single answer. You're observing a multi-perspective deliberation.
 
 ---
 
 ## On Impermanence
 
-Cloud services log everything forever. We invert this default.
+Many cloud services retain conversation history by default. We invert this.
 
-Your deliberations are ephemeral. When you close the session, they are gone. Not "archived," not "retained for 30 days," not "anonymized and used for improvement." Gone.
+Your deliberations are ephemeral. When you close the session, they're gone—not archived, not retained, not used for any purpose.
 
-If you choose to save, you must do so explicitly. What you save is encrypted with keys you control. If you lose the key, we cannot help you. This is a feature, not a bug.
+If you choose to save, you do so explicitly. What you save is encrypted with keys only you hold.
 
-If you choose to forget, we forget. Secure deletion, not a database flag.
+If you choose to forget, the data is securely deleted.
 
-The examined life should not become the archived life.
+You control the lifecycle of your own thinking.
 
 ---
 
-## The Social Contract
+## Using This Software
 
-By using this software, you agree to nothing. We make no claims on your data because we never see your data. We offer no warranty because this is not a commercial relationship.
+This is open source software provided as-is. We make no claims on your data because we never see your data.
 
-In return, we ask only this: if you find this useful, consider why. Consider what it means that you wanted a private space for AI-assisted deliberation. Consider what the absence of such spaces might mean for a society.
-
-And if you are moved to contribute—code, documentation, or merely articulate critique—we welcome it.
+If you find this useful, we welcome contributions—code, documentation, or thoughtful feedback.
 
 ---
 
 ## Closing
 
-Socrates was executed for his questions.
+There's value in having spaces for private reflection, even in an increasingly connected world.
 
-Today, we face a subtler fate. Our questions are harvested, analyzed, and used to shape the very systems that answer us. The examined life becomes training data for systems we do not control.
+The Private Council offers one such space: a place where you can think through questions with AI assistance, with everything staying entirely on your own machine.
 
-The Sovereign Council offers an alternative. A space where you can think out loud with AI assistance, without that thinking becoming someone else's property.
-
-Your questions deserve privacy not because they are shameful, but because they are *yours*.
+For those who want this kind of privacy, we hope this project serves you well.
 
 ---
 
-*This manifesto is version 1.0. Like all things, it may evolve. Unlike your deliberations, it is public.*
+*This manifesto is version 1.2. Like all things, it may evolve.*

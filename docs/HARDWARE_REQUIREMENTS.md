@@ -1,10 +1,10 @@
 # Hardware Requirements Guide
 
-> Running local LLMs requires significant hardware resources. This guide helps you choose the right configuration for your budget and performance needs.
+> Running local LLMs requires significant hardware resources. This guide helps you choose the right configuration for your needs.
 
 ## Overview
 
-The Sovereign Council runs multiple LLM models simultaneously:
+The Private Council runs multiple LLM models simultaneously:
 - **3 Council Members**: Each provides an independent perspective (7-8B parameter models)
 - **1 Chairman**: Synthesizes perspectives and preserves dissent (ideally 70B parameter model)
 - **Analysis Engine**: Performs disagreement detection and minority report extraction
@@ -314,7 +314,7 @@ If local hardware is not feasible, consider privacy-respecting cloud GPU rental:
 | [Vast.ai](https://vast.ai) | Various consumer/pro | Peer-to-peer, variable privacy |
 | [Lambda Labs](https://lambdalabs.com) | A100, H100 | US-based, standard ToS |
 
-**Warning**: Cloud deployment compromises the privacy guarantees of The Sovereign Council. Only use for testing or non-sensitive workloads.
+**Note**: Cloud deployment involves sending data to external infrastructure. Consider your privacy requirements before using cloud GPU services.
 
 ---
 
@@ -362,4 +362,4 @@ Hardware requirements will evolve as:
 - **Hardware accelerators**: NPUs in consumer devices
 - **Apple Silicon improvements**: Each generation adds capability
 
-The Sovereign Council configuration is designed to be flexible - update `sovereign_council.yaml` as your hardware or available models change.
+The Private Council configuration is designed to be flexible - update `sovereign_council.yaml` as your hardware or available models change.

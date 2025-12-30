@@ -1,26 +1,27 @@
-# The Sovereign Council
+# The Private Council
 
-> Your deliberations belong to you.
+> The only LLM council that preserves and highlights minority opinions, with tiered privacy modes and ephemeral-by-default operation.
 
-A privacy-first local LLM council for deliberative AI assistance. Inspired by [Karpathy's llm-council](https://github.com/karpathy/llm-council), rebuilt from the ground up with privacy as the architectural foundation.
+A local LLM deliberation system built on [Karpathy's llm-council](https://github.com/karpathy/llm-council) concept. While other local implementations exist (see [Prior Art](docs/PRIOR_ART.md)), this project focuses on what others don't: **preserving dissent, not just reaching consensus**.
 
-## What Is This?
+## What Makes This Different?
 
-A council of locally-hosted language models that deliberate on your questions:
+Most multi-model systems optimize for agreement. We optimize for **visibility into disagreement**:
 
-1. **Multiple perspectives** - Each council member provides their independent view
-2. **Peer review** - Models critique each other's responses (anonymized to prevent bias)
-3. **Synthesis with dissent** - A chairman model synthesizes the discussion while preserving disagreement
+1. **Minority reports preserved** - When a model is outvoted, its dissent remains visible, not discarded
+2. **Disagreement highlighting** - The UI surfaces where models fundamentally disagree, not just the synthesis
+3. **Tiered privacy modes** - Choose your level: Sovereign (air-gapped), Sanctuary (local network), or Citadel (containerized)
+4. **Ephemeral by default** - Deliberations vanish when you close the session; saving requires explicit action and encryption
 
-All of this happens **entirely on your machine**. No queries leave your hardware. No responses are logged externally. No telemetry phones home.
+Everything runs **entirely on your machine**. No queries leave your hardware. No telemetry.
 
-## Why?
+## Why Local?
 
-When you ask difficult questions—about relationships, career decisions, health concerns, ethical dilemmas—you engage in intellectual intimacy. That intimacy deserves a private space, not a public square.
+When you work through difficult questions—about relationships, career decisions, health concerns, ethical dilemmas—you're engaging in personal reflection. Some people prefer that reflection to happen in a space they fully control.
 
-Cloud AI services collapse this distinction. You type as if in private, but speak into infrastructure you don't control.
+Cloud AI services are convenient and powerful. For many use cases, they work well. This project offers an alternative for those who want complete local control.
 
-This project restores the distinction. See [MANIFESTO.md](MANIFESTO.md) for the full philosophy.
+See [MANIFESTO.md](MANIFESTO.md) for the full philosophy.
 
 ## Privacy Modes
 
@@ -121,15 +122,24 @@ See the file for detailed documentation of each setting.
 
 ## Key Decisions
 
-This implementation reflects specific value choices:
+This implementation reflects specific choices:
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
 | Default privacy mode | Sanctuary | Balance between security and usability |
 | Minimum council size | 2 (warn below 3) | Allow operation on limited hardware |
-| Chairman fallback | Allowed | Don't block users with modest hardware |
+| Chairman fallback | Allowed | Support users with modest hardware |
 | Encryption for saves | Required | If worth saving, worth encrypting |
-| Consent banner | Always shown, user-dismissable | Transparency is non-negotiable |
+| Consent banner | Always shown, user-dismissable | Transparency matters |
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [MANIFESTO.md](MANIFESTO.md) | Project philosophy and values |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Technical architecture and design decisions |
+| [docs/HARDWARE_REQUIREMENTS.md](docs/HARDWARE_REQUIREMENTS.md) | Hardware sizing guide |
+| [docs/PRIOR_ART.md](docs/PRIOR_ART.md) | Related projects and how we differ |
 
 ## Project Structure
 
@@ -142,6 +152,9 @@ private-llm-council/
 ├── .env.example              # Environment configuration template
 ├── config/
 │   └── sovereign_council.yaml  # Configuration (values declaration)
+├── docs/
+│   ├── ARCHITECTURE.md       # Technical architecture
+│   └── HARDWARE_REQUIREMENTS.md  # Hardware guide
 ├── backend/
 │   ├── Dockerfile            # Backend container
 │   ├── pyproject.toml        # Python dependencies
@@ -158,8 +171,8 @@ private-llm-council/
     ├── Dockerfile            # Frontend container
     ├── nginx.conf            # Production web server config
     ├── src/
-    │   ├── components/       # React components
-    │   ├── hooks/            # Custom React hooks
+    │   ├── components/       # Angular components
+    │   ├── services/         # Angular services
     │   ├── api/              # API client
     │   └── types/            # TypeScript definitions
     └── ...
@@ -195,7 +208,7 @@ For detailed hardware guidance including GPU comparisons, Apple Silicon support,
 
 - **Not a cost-saving measure** - Local inference often costs more than cloud
 - **Not a performance optimization** - Local is usually slower
-- **Not paranoid** - Believing your thoughts deserve privacy is dignity, not paranoia
+- **Not a criticism of cloud services** - They have legitimate uses; we offer an alternative
 - **Not a product** - No business model, no telemetry, no premium tier
 
 ## Contributing
@@ -209,5 +222,6 @@ MIT
 ## Acknowledgments
 
 - [Andrej Karpathy](https://github.com/karpathy) for the original llm-council concept
+- [mchzimm/llm-council-local-improved](https://github.com/mchzimm/llm-council-local-improved) for pioneering local privacy-focused implementation
+- [Open WebUI](https://github.com/open-webui/open-webui) for advancing local LLM interfaces
 - The open-source LLM community for making local inference possible
-- Everyone who believes that some spaces should remain private

@@ -35,13 +35,21 @@ See [MANIFESTO.md](MANIFESTO.md) for the full philosophy.
 
 ### Prerequisites
 
+**Standard Setup:**
 - Python 3.10+
 - [Ollama](https://ollama.ai/) running locally
 - 16GB+ RAM (32GB+ recommended)
 - GPU with 8GB+ VRAM (24GB+ recommended)
 
+**Modest Hardware Setup** (integrated GPU/laptop):
+- See [Modest Hardware Guide](docs/CONTRIBUTING_MODEST_HARDWARE.md)
+- 16GB RAM sufficient with ultra-light models (1-3B)
+- CPU-only mode supported
+- Expect slower deliberations (5-15 minutes vs 1-2 minutes)
+
 ### Install Models
 
+**Standard Setup:**
 ```bash
 # Pull council member models
 ollama pull llama3.2:8b
@@ -52,6 +60,17 @@ ollama pull qwen2.5:7b
 ollama pull llama3.2:70b
 # Or use a smaller chairman if hardware-constrained:
 ollama pull llama3.2:8b
+```
+
+**Modest Hardware Setup** (integrated GPU/laptop):
+```bash
+# Pull ultra-light models
+ollama pull llama3.2:1b   # ~1GB
+ollama pull qwen2.5:3b    # ~2GB
+ollama pull llama3.2:3b   # ~2GB
+
+# Force CPU mode (often faster than integrated GPU)
+export OLLAMA_NUM_GPU=0
 ```
 
 ### Docker (Recommended)
@@ -138,7 +157,8 @@ This implementation reflects specific choices:
 |----------|-------------|
 | [MANIFESTO.md](MANIFESTO.md) | Project philosophy and values |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Technical architecture and design decisions |
-| [docs/HARDWARE_REQUIREMENTS.md](docs/HARDWARE_REQUIREMENTS.md) | Hardware sizing guide |
+| [docs/HARDWARE_REQUIREMENTS.md](docs/HARDWARE_REQUIREMENTS.md) | Hardware sizing guide (including Tier 0: Modest Hardware) |
+| [docs/CONTRIBUTING_MODEST_HARDWARE.md](docs/CONTRIBUTING_MODEST_HARDWARE.md) | Guide for contributors with laptops/integrated GPUs |
 | [docs/PRIOR_ART.md](docs/PRIOR_ART.md) | Related projects and how we differ |
 
 ## Project Structure
@@ -198,9 +218,12 @@ private-llm-council/
 
 | Profile | RAM | VRAM | Notes |
 |---------|-----|------|-------|
+| Modest | 16GB | Integrated GPU | Ultra-light models (1-3B), CPU mode, 5-15 min deliberations |
 | Minimum | 16GB | 8GB | 7B models only, sequential inference |
 | Recommended | 32GB | 24GB | Multiple 7B + quantized 70B chairman |
 | Optimal | 64GB | 48GB | Full parallel inference, 70B at full precision |
+
+**Have modest hardware?** Check out our [Modest Hardware Guide](docs/CONTRIBUTING_MODEST_HARDWARE.md) for optimization tips and contribution pathways.
 
 For detailed hardware guidance including GPU comparisons, Apple Silicon support, and optimization tips, see [docs/HARDWARE_REQUIREMENTS.md](docs/HARDWARE_REQUIREMENTS.md).
 
@@ -213,7 +236,14 @@ For detailed hardware guidance including GPU comparisons, Apple Silicon support,
 
 ## Contributing
 
-Contributions welcome. Please read [MANIFESTO.md](MANIFESTO.md) first to understand the values this project embodies.
+Contributions welcome! Please read [MANIFESTO.md](MANIFESTO.md) first to understand the values this project embodies.
+
+**Have modest hardware?** You can still contribute meaningfully! See [docs/CONTRIBUTING_MODEST_HARDWARE.md](docs/CONTRIBUTING_MODEST_HARDWARE.md) for ways to contribute without expensive hardware:
+- Documentation improvements
+- Frontend development (no models needed)
+- Configuration design
+- Unit tests
+- And more!
 
 ## License
 

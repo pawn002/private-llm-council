@@ -1,28 +1,38 @@
 # ============================================================================
-# THE SOVEREIGN COUNCIL - Configuration
+# THE SOVEREIGN COUNCIL - Modest Hardware Configuration
 # ============================================================================
-# This configuration file is a statement of values, not just settings.
-# Comments explain WHY, not just WHAT.
+# Optimized for: 16GB RAM + Integrated GPU (or CPU-only inference)
+# Expected performance: 5-15 minute deliberations
+# Use case: Laptops, older hardware, contributors testing configurations
 # ============================================================================
+
+# To use this configuration:
+# 1. Pull the required models:
+#    ollama pull llama3.2:1b
+#    ollama pull qwen2.5:3b
+#    ollama pull llama3.2:3b
+#
+# 2. (Optional) Force CPU-only mode for better performance on integrated GPUs:
+#    export OLLAMA_NUM_GPU=0
+#
+# 3. Start the backend:
+#    CONFIG_PATH=config/sovereign_council_modest.yaml python -m src.main
 
 # ============================================================================
 # IDENTITY & VALUES
-# Why this project exists
 # ============================================================================
 identity:
-  name: "The Sovereign Council"
+  name: "The Sovereign Council (Modest Hardware Edition)"
   version: "0.1.0"
   principle: |
     Your deliberations belong to you.
     This system exists to keep them that way.
+    You don't need expensive hardware to explore these ideas.
 
 # ============================================================================
 # PRIVACY MODE
-# Choose your position on the pragmatism-principle spectrum
 # ============================================================================
 privacy:
-  # Options: sovereign | sanctuary | citadel
-  # Default: sanctuary (balanced security and usability)
   mode: "sanctuary"
 
   modes:
@@ -47,94 +57,89 @@ privacy:
 
 # ============================================================================
 # INFERENCE GATEWAY
-# The plumbing that connects to local models
 # ============================================================================
 gateway:
-  # Provider options: ollama | vllm | llamacpp
   provider: "ollama"
-
-  # Base URL for the inference API
   url: "http://localhost:11434/v1"
 
-  # Local inference is slower than cloud - be patient
-  timeout_seconds: 120
+  # Longer timeout for slower CPU inference
+  timeout_seconds: 180
 
-  # Retry on transient failures
   retry_attempts: 3
   retry_delay_seconds: 2
 
-  # Health monitoring
   health_check:
     enabled: true
     endpoint: "/health"
     interval_seconds: 30
 
-  # First inference is slow due to model loading - warm up on startup
+  # Skip warmup to reduce initial memory usage
   warmup:
-    enabled: true
-    prompt: "Hello, this is a warmup prompt."
+    enabled: false
 
 # ============================================================================
-# COUNCIL COMPOSITION
-# Selected for BOTH capability AND epistemic diversity
+# COUNCIL COMPOSITION - ULTRA-LIGHT MODELS
 # ============================================================================
 council:
   members:
+    # Minimal 2-member council for modest hardware
+    # You can add a third member if you have 20GB+ RAM
+
     - id: "phi"
-      model: "llama3.2:8b"
-      # Capability rationale (DevOps perspective)
-      capability: "Strong general reasoning and instruction following"
-      # Epistemic rationale (Philosophical perspective)
-      character: "Western analytical tradition, Silicon Valley optimism"
+      model: "llama3.2:1b"
+      capability: "Ultra-light but capable general reasoning"
+      character: "Pragmatic, direct, Western analytical tradition"
       temperature: 0.7
 
     - id: "psi"
-      model: "mistral:7b"
-      capability: "Excellent instruction following, structured outputs"
-      character: "European regulatory mindset, GDPR-informed caution"
+      model: "qwen2.5:3b"
+      capability: "Efficient multilingual model with diverse training"
+      character: "Considers multiple cultural perspectives"
       temperature: 0.7
 
-    - id: "omega"
-      model: "qwen2.5:7b"
-      capability: "Diverse training corpus, multilingual strength"
-      character: "Eastern philosophical traditions, different cultural priors"
-      temperature: 0.7
+    # Optional third member (uncomment if you have headroom):
+    # - id: "omega"
+    #   model: "llama3.2:3b"
+    #   capability: "Balanced performance and size"
+    #   character: "Cautious, detail-oriented"
+    #   temperature: 0.7
 
   chairman:
-    model: "llama3.2:70b"
-    capability: "Large context window needed for synthesis"
+    # Use 3B model for synthesis instead of 70B
+    model: "llama3.2:3b"
+    capability: "Lightweight synthesis, preserves dissent"
     role: "Synthesizer and dissent-preserver, not arbiter of truth"
     temperature: 0.3
     preserve_dissent: true
 
-    # Fallback if 70B model unavailable (Decision Point #3: Allowed)
     fallback:
       enabled: true
       prompt_user: true
       message: "Chairman model unavailable. Use {fallback_model} for synthesis?"
 
 # ============================================================================
-# DELIBERATION PROCESS
-# How the council operates
+# DELIBERATION PROCESS - SEQUENTIAL INFERENCE
 # ============================================================================
 deliberation:
   stages:
     # Stage 1: Gather independent perspectives
     collect:
-      parallel: true
-      timeout_per_model_seconds: 60
+      # Sequential inference to reduce memory pressure
+      parallel: false
+      # Longer timeout for CPU inference
+      timeout_per_model_seconds: 120
 
     # Stage 2: Anonymized peer review
     review:
-      anonymize_models: true  # Prevent favoritism
+      anonymize_models: true
       require_rankings: true
 
-    # Stage 3: Chairman synthesis with dissent preservation
+    # Stage 3: Chairman synthesis
     synthesize:
       preserve_dissent: true
       include_minority_reports: true
 
-  # What the user sees
+  # Full transparency - user sees everything
   transparency:
     show_individual_responses: true
     show_peer_reviews: true
@@ -144,14 +149,12 @@ deliberation:
 
 # ============================================================================
 # DEGRADATION POLICY
-# When resources are constrained, be transparent about it
 # ============================================================================
 degradation:
-  # NEVER silently degrade - the user must always know
   silent_fallback: false
 
   on_model_unavailable:
-    action: "prompt_user"  # Options: prompt_user | auto_skip | fail
+    action: "prompt_user"
     message: "Council member unavailable. Continue with reduced epistemic diversity?"
 
   on_chairman_unavailable:
@@ -159,104 +162,95 @@ degradation:
     fallback_to_largest_available: true
     message: "Chairman unavailable. Use {fallback_model} for synthesis?"
 
-  # Decision Point #2: Minimum 2, warn below 3
+  # Allow 2-member council for modest hardware
   minimum_council_size: 2
   warn_below_size: 3
-  below_minimum_message: "Insufficient council members for meaningful deliberation."
+  below_minimum_message: "Running with minimal council. Consider adding members when hardware allows."
 
 # ============================================================================
 # PERSISTENCE
-# Ephemeral by default - explicit save required
 # ============================================================================
 persistence:
-  # User-facing default: deliberations vanish on session close
   default: "ephemeral"
 
-  # Operators can override for enterprise/compliance deployments
   operator_can_override: true
 
-  # Consent banner - always shown, user can dismiss per session
-  # (Decision Point #5)
   consent_banner:
-    always_show_on_session_start: true  # Operators CANNOT disable this
-    user_dismissable: true              # User can hide after acknowledging
-    persist_dismissal: "session_only"   # Re-shown on next session
+    always_show_on_session_start: true
+    user_dismissable: true
+    persist_dismissal: "session_only"
     text: "This deliberation will be forgotten when you close the session."
 
-  # When user explicitly saves (Decision Point #4: Encryption required)
   save:
-    encryption: "required"  # No plaintext persistence allowed
+    encryption: "required"
     algorithm: "AES-256-GCM"
-    key_source: "user_provided"  # Options: user_provided | derived | system
+    key_source: "user_provided"
 
-  # Secure deletion when user chooses to forget
   forget:
     secure_overwrite: true
     overwrite_passes: 3
 
 # ============================================================================
 # TELEMETRY
-# None. This is not negotiable.
 # ============================================================================
 telemetry:
   enabled: false
-  # This comment IS the implementation:
-  # We do not track you because your intellectual struggles
-  # are not our training data, our metrics, or our business.
 
 # ============================================================================
-# HARDWARE REQUIREMENTS
-# Reference for deployment planning
+# HARDWARE PROFILE
 # ============================================================================
 hardware:
-  profiles:
-    modest:
-      ram_gb: 16
-      vram_gb: "integrated"
-      description: "Ultra-light models (1-3B), CPU mode, integrated GPU"
-      chairman_fallback: "3b_model"
-      config_file: "config/sovereign_council_modest.yaml"
-      notes: |
-        For laptops and integrated graphics. See:
-        - docs/CONTRIBUTING_MODEST_HARDWARE.md
-        - docs/HARDWARE_REQUIREMENTS.md (Tier 0)
-        Use: CONFIG_PATH=config/sovereign_council_modest.yaml
+  profile: "modest"
+  specs:
+    ram_gb: 16
+    gpu_type: "integrated"  # or "cpu_only"
+    description: "Integrated GPU or CPU-only inference with ultra-light models"
 
-    minimum:
-      ram_gb: 16
-      vram_gb: 8
-      description: "Run 7B models sequentially, no 70B chairman"
-      chairman_fallback: "largest_7b"
+  optimization:
+    notes: |
+      Performance tips for this configuration:
 
-    recommended:
-      ram_gb: 32
-      vram_gb: 24
-      description: "Run multiple 7B models, 70B chairman quantized"
-      chairman_fallback: null
+      1. Force CPU-only mode (often faster than integrated GPU):
+         export OLLAMA_NUM_GPU=0
 
-    optimal:
-      ram_gb: 64
-      vram_gb: 48
-      description: "Full parallel inference, 70B chairman at full precision"
-      chairman_fallback: null
+      2. Close background applications to free RAM
+
+      3. Monitor temperature - use cooling pad if throttling occurs
+
+      4. Expect 5-15 minute deliberations (this is normal!)
+
+      5. Consider adding third council member if you have 20GB+ RAM
 
 # ============================================================================
 # LOGGING
-# Local only, privacy-respecting
 # ============================================================================
 logging:
-  level: "INFO"  # Options: DEBUG | INFO | WARNING | ERROR
+  level: "INFO"
 
-  # Logs never contain query content
   redact_queries: true
   redact_responses: true
 
-  # Rotate logs to prevent unbounded growth
   rotation:
     max_size_mb: 10
     backup_count: 3
 
-  # Where logs go
   output:
     console: true
-    file: "logs/sovereign_council.log"
+    file: "logs/sovereign_council_modest.log"
+
+# ============================================================================
+# PERFORMANCE EXPECTATIONS
+# ============================================================================
+# With this configuration:
+# - Model loading: 10-30 seconds each
+# - Per-perspective inference: 2-5 minutes
+# - Full deliberation (2 members + chairman): 5-15 minutes
+# - Memory usage: 6-10GB total
+# - CPU usage: 80-100% during inference (normal)
+#
+# This is slow compared to dedicated GPU configs, but:
+# ✓ Completely functional
+# ✓ Privacy-preserving
+# ✓ No hardware investment required
+# ✓ Sufficient for testing and development
+# ============================================================================

@@ -15,6 +15,141 @@ The primary bottleneck is **GPU VRAM** for model loading and inference. Secondar
 
 ## Hardware Tiers
 
+### Tier 0: Modest Hardware (Integrated Graphics)
+
+**Target Audience**: Students, contributors with laptops, those exploring without dedicated hardware investment.
+
+| Component | Specification | Notes |
+|-----------|---------------|-------|
+| **GPU** | Integrated (Intel Iris Xe, AMD Radeon, Apple M1/M2 base) | Shared memory with system RAM |
+| **System RAM** | 16GB | GPU shares this pool (typically 2-4GB allocated) |
+| **CPU** | 4+ cores (Intel i5/AMD Ryzen 5/Apple Silicon) | CPU inference supported |
+| **Storage** | 50GB SSD | Smaller models require less space |
+
+**Operational Constraints**:
+- CPU-only inference (slower but functional)
+- Ultra-light models required (1-3B parameters)
+- 2-member council recommended (minimum viable deliberation)
+- Small chairman model (3B recommended)
+- Expect 3-10 minute response times per deliberation
+- Total deliberation time: 5-15 minutes
+
+**Recommended Model Configuration**:
+```yaml
+council:
+  members:
+    - id: "phi"
+      model: "llama3.2:1b"  # Ultra-light for integrated GPU
+    - id: "psi"
+      model: "qwen2.5:3b"   # Small but capable
+  chairman:
+    model: "llama3.2:3b"    # Lightest viable chairman
+```
+
+**Alternative: CPU-Only Configuration**:
+```yaml
+# Set environment variable for CPU-only inference
+# export OLLAMA_NUM_GPU=0
+
+council:
+  members:
+    - id: "phi"
+      model: "llama3.2:3b"
+    - id: "psi"
+      model: "qwen2.5:3b"
+  chairman:
+    model: "llama3.2:3b"
+```
+
+**Estimated Cost**:
+- Using existing laptop: $0
+- Purpose-built laptop: $500-800 USD (16GB RAM minimum)
+
+**Example Configurations**:
+| Device Type | GPU | RAM | Performance Notes |
+|-------------|-----|-----|-------------------|
+| Intel Laptop | Iris Xe | 16GB | 1-3B models, 5-10 min deliberations |
+| AMD Laptop | Radeon 680M | 16GB | Similar to Intel, good CPU fallback |
+| Apple M1/M2 | 8-core GPU | 16GB | Better than x86 integrated, 3-5 min |
+| Desktop iGPU | Intel UHD 770 | 16GB | CPU mode recommended |
+
+**Performance Expectations**:
+- **Model Loading**: 10-30 seconds per model
+- **Inference Speed**: 5-15 tokens/second (vs 50-100 on dedicated GPU)
+- **Single Response**: 2-5 minutes
+- **Full Deliberation**: 8-15 minutes (3 perspectives + synthesis)
+- **Memory Usage**: 8-12GB total (system + models)
+
+**Optimization Tips for Integrated GPUs**:
+
+1. **Enable CPU inference for better performance**:
+   ```bash
+   # Force CPU-only mode (often faster than integrated GPU)
+   export OLLAMA_NUM_GPU=0
+   ollama serve
+   ```
+
+2. **Increase system memory allocation to GPU** (if BIOS allows):
+   - Check BIOS/UEFI for "iGPU Memory" or "Shared Memory" settings
+   - Increase to 4GB if running 3B models
+
+3. **Use ultra-light models**:
+   ```bash
+   ollama pull llama3.2:1b    # 1B parameter model (~1GB)
+   ollama pull qwen2.5:3b     # 3B parameter model (~2GB)
+   ```
+
+4. **Close background applications**:
+   - Browsers, IDEs, and media apps use significant RAM
+   - Aim for 8GB+ free before starting deliberation
+
+5. **Monitor thermal throttling**:
+   ```bash
+   # Linux: monitor CPU temperature
+   watch -n 1 sensors
+
+   # macOS: use Activity Monitor or iStat Menus
+   # Windows: HWMonitor or Task Manager
+   ```
+   - Integrated GPUs throttle aggressively when hot
+   - Use laptop cooling pad if deliberations slow down over time
+
+6. **Adjust council size dynamically**:
+   ```yaml
+   degradation:
+     minimum_council_size: 2  # Start with 2 members
+   ```
+
+**Contributing Without Running Full System**:
+
+You can meaningfully contribute to this project even without running the full deliberation system:
+
+1. **Documentation**: Improve guides, add examples, fix typos
+2. **Frontend Development**: Angular UI doesn't require models
+3. **Configuration**: Design new council compositions
+4. **Testing**: Unit tests don't require model inference
+5. **Analysis Scripts**: Write tools to analyze deliberation results
+6. **Community**: Answer questions, review PRs, suggest improvements
+
+See [CONTRIBUTING_MODEST_HARDWARE.md](CONTRIBUTING_MODEST_HARDWARE.md) for detailed guidance.
+
+**When to Upgrade**:
+
+Consider upgrading hardware if:
+- Deliberations take longer than you're willing to wait (>15 minutes)
+- You want to experiment with multiple council compositions
+- You need to test 7B+ model configurations
+- Thermal throttling becomes disruptive
+
+**Alternative: Cloud Testing**:
+
+For occasional testing with full-sized models:
+- Use [Vast.ai](https://vast.ai) (~$0.20/hour for RTX 3090)
+- Rent for 2-3 hours to test configurations
+- Switch back to local modest hardware for daily use
+
+---
+
 ### Tier 1: Consumer Grade (Entry Level)
 
 **Target Audience**: Hobbyists, students, and those exploring local LLM inference on existing hardware.

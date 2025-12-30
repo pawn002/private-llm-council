@@ -6,7 +6,9 @@ We're living in a fascinating moment in technology.
 
 For the first time, machines can engage in something resembling dialogue. They can consider your questions, offer perspectives, and even disagree with each other. This opens up remarkable possibilities for thinking through complex problems.
 
-This project exists because we believe there's value in having AI-assisted deliberation happen entirely on your own machine—not because cloud services are bad, but because local operation offers something different: complete privacy by design.
+Several projects now offer local LLM council functionality—and we acknowledge their contributions (see [Prior Art](docs/PRIOR_ART.md)). This project exists not to replicate what's already been done, but to focus on what others haven't: **preserving minority opinions and making disagreement visible**.
+
+Most multi-model systems optimize for consensus. We believe the dissenting voice often contains the insight you need most.
 
 ---
 
@@ -38,6 +40,21 @@ A council of locally-hosted language models that:
 
 ---
 
+## What Sets Us Apart
+
+Other local LLM council implementations exist. Here's what we do differently:
+
+| Feature | Typical Approach | Our Approach |
+|---------|------------------|--------------|
+| Disagreement | Smoothed over in synthesis | Highlighted and preserved |
+| Minority opinions | Discarded after voting | Visible as minority reports |
+| Privacy | Single mode | Tiered: Sovereign, Sanctuary, Citadel |
+| Persistence | Varies | Ephemeral by default, encrypted on save |
+
+We're not claiming to be first. We're claiming to care about things others don't prioritize.
+
+---
+
 ## What We're Not Building
 
 **Not a cost-saving measure.** Local inference often costs more than cloud APIs when you account for hardware. This project is about control, not cost.
@@ -47,6 +64,8 @@ A council of locally-hosted language models that:
 **Not a criticism of cloud services.** Cloud AI has legitimate uses and offers convenience many users prefer. We simply offer an alternative for those who want it.
 
 **Not a product.** There is no business model. There is no telemetry. There is no "premium tier." This is a tool for those who find it useful.
+
+**Not claiming to be first.** Other local council implementations exist and deserve credit. See [Prior Art](docs/PRIOR_ART.md).
 
 ---
 
@@ -126,4 +145,4 @@ For those who want this kind of privacy, we hope this project serves you well.
 
 ---
 
-*This manifesto is version 1.1. Like all things, it may evolve.*
+*This manifesto is version 1.2. Like all things, it may evolve.*

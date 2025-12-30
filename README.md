@@ -1,18 +1,19 @@
 # The Private Council
 
-> Your deliberations can remain entirely yours.
+> The only LLM council that preserves and highlights minority opinions, with tiered privacy modes and ephemeral-by-default operation.
 
-A privacy-first local LLM council for AI-assisted deliberation. Inspired by [Karpathy's llm-council](https://github.com/karpathy/llm-council), rebuilt with privacy as an architectural foundation.
+A local LLM deliberation system built on [Karpathy's llm-council](https://github.com/karpathy/llm-council) concept. While other local implementations exist (see [Prior Art](docs/PRIOR_ART.md)), this project focuses on what others don't: **preserving dissent, not just reaching consensus**.
 
-## What Is This?
+## What Makes This Different?
 
-A council of locally-hosted language models that deliberate on your questions:
+Most multi-model systems optimize for agreement. We optimize for **visibility into disagreement**:
 
-1. **Multiple perspectives** - Each council member provides their independent view
-2. **Peer review** - Models critique each other's responses (anonymized to prevent bias)
-3. **Synthesis with dissent** - A chairman model synthesizes the discussion while preserving disagreement
+1. **Minority reports preserved** - When a model is outvoted, its dissent remains visible, not discarded
+2. **Disagreement highlighting** - The UI surfaces where models fundamentally disagree, not just the synthesis
+3. **Tiered privacy modes** - Choose your level: Sovereign (air-gapped), Sanctuary (local network), or Citadel (containerized)
+4. **Ephemeral by default** - Deliberations vanish when you close the session; saving requires explicit action and encryption
 
-Everything happens **entirely on your machine**. No queries leave your hardware. No responses are logged externally. No telemetry is collected.
+Everything runs **entirely on your machine**. No queries leave your hardware. No telemetry.
 
 ## Why Local?
 
@@ -138,6 +139,7 @@ This implementation reflects specific choices:
 | [MANIFESTO.md](MANIFESTO.md) | Project philosophy and values |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Technical architecture and design decisions |
 | [docs/HARDWARE_REQUIREMENTS.md](docs/HARDWARE_REQUIREMENTS.md) | Hardware sizing guide |
+| [docs/PRIOR_ART.md](docs/PRIOR_ART.md) | Related projects and how we differ |
 
 ## Project Structure
 
@@ -220,4 +222,6 @@ MIT
 ## Acknowledgments
 
 - [Andrej Karpathy](https://github.com/karpathy) for the original llm-council concept
+- [mchzimm/llm-council-local-improved](https://github.com/mchzimm/llm-council-local-improved) for pioneering local privacy-focused implementation
+- [Open WebUI](https://github.com/open-webui/open-webui) for advancing local LLM interfaces
 - The open-source LLM community for making local inference possible

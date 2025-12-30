@@ -1,0 +1,62 @@
+<div class="consent-banner" [class]="modeColor">
+  <div class="banner-content">
+    <div class="banner-main">
+      <div class="banner-info">
+        <span class="mode-icon">{{ modeIcon }}</span>
+        <div class="mode-details">
+          <h2>The Sovereign Council - Privacy First</h2>
+          <ng-container *ngIf="loading; else statusInfo">
+            <p class="status-loading">Checking privacy status...</p>
+          </ng-container>
+          <ng-template #statusInfo>
+            <div class="status-row" *ngIf="status">
+              <span>
+                Mode: <span class="accent">{{ status.mode.mode }}</span>
+              </span>
+              <span class="separator">|</span>
+              <span>
+                Network:
+                <span [class]="status.network_status.local_only ? 'text-green' : 'text-yellow'">
+                  {{ status.network_status.local_only ? 'Local Only' : 'External Detected' }}
+                </span>
+              </span>
+              <span class="separator">|</span>
+              <span>
+                Ollama:
+                <span [class]="status.network_status.ollama_reachable ? 'text-green' : 'text-red'">
+                  {{ status.network_status.ollama_reachable ? 'Connected' : 'Unavailable' }}
+                </span>
+              </span>
+            </div>
+            <p class="status-error" *ngIf="!status">
+              Unable to verify privacy status
+            </p>
+          </ng-template>
+        </div>
+      </div>
+
+      <div class="banner-actions">
+        <div class="warning-count" *ngIf="status?.warnings?.length">
+          {{ status!.warnings.length }} warning(s)
+        </div>
+        <button class="btn btn-secondary" (click)="onDismiss()">
+          Dismiss
+        </button>
+      </div>
+    </div>
+
+    <div class="warnings-list" *ngIf="status?.warnings?.length">
+      <ul>
+        <li *ngFor="let warning of status!.warnings">
+          <span class="warning-icon">⚠</span>
+          {{ warning }}
+        </li>
+      </ul>
+    </div>
+
+    <p class="privacy-note">
+      All processing happens locally. Your questions and deliberations never
+      leave your machine. This banner will reappear each session.
+    </p>
+  </div>
+</div>

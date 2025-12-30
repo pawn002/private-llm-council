@@ -1,0 +1,22 @@
+<app-consent-banner
+  *ngIf="privacyService.showConsentBanner"
+  [status]="privacyService.status"
+  [loading]="privacyService.loading"
+  (dismiss)="onDismissConsent()"
+></app-consent-banner>
+
+<main [class.with-banner]="privacyService.showConsentBanner">
+  <div class="container">
+    <app-council></app-council>
+  </div>
+</main>
+
+<footer>
+  <div class="footer-content">
+    <span>The Sovereign Council v0.1.0</span>
+    <span class="status">
+      <span class="status-dot"></span>
+      {{ privacyService.status?.mode?.mode || 'Loading...' }}
+    </span>
+  </div>
+</footer>

@@ -1,0 +1,17 @@
+<div class="perspective-card" [class]="borderColor">
+  <button class="card-header" (click)="onToggle()">
+    <div class="member-info">
+      <span class="member-icon">{{ icon }}</span>
+      <div class="member-details">
+        <h3>{{ perspective.member_id }}</h3>
+        <p>{{ perspective.character }} · {{ perspective.model }}</p>
+      </div>
+    </div>
+    <span class="toggle-icon">{{ isExpanded ? '▼' : '▶' }}</span>
+  </button>
+
+  <div class="card-content" *ngIf="isExpanded">
+    <div class="perspective-text">{{ perspective.content }}</div>
+    <div class="timestamp">{{ formattedTimestamp }}</div>
+  </div>
+</div>

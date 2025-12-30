@@ -1,0 +1,61 @@
+<div class="deliberation-view">
+  <!-- Question Header -->
+  <div class="card question-header">
+    <div class="question-content">
+      <div class="question-text">
+        <p class="label">Question</p>
+        <h1>{{ deliberation.question }}</h1>
+        <p class="meta">
+          {{ deliberation.perspectives.length }} perspectives ·
+          {{ deliberation.disagreements.length }} disagreements ·
+          {{ formattedTimestamp }}
+        </p>
+      </div>
+      <div class="question-actions">
+        <button class="btn btn-secondary" (click)="onSave()">
+          <span>🔐</span> Save
+        </button>
+        <button class="btn btn-primary" (click)="onNewQuestion()">
+          New Question
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="tabs">
+    <button
+      class="tab"
+      [class.active]="activeTab === 'synthesis'"
+      (click)="activeTab = 'synthesis'"
+    >
+      Synthesis
+    </button>
+    <button
+      class="tab"
+      [class.active]="activeTab === 'perspectives'"
+      (click)="activeTab = 'perspectives'"
+    >
+      Perspectives ({{ deliberation.perspectives.length }})
+    </button>
+  </div>
+
+  <!-- Tab Content -->
+  <div class="tab-content">
+    <app-synthesis-panel
+      *ngIf="activeTab === 'synthesis'"
+      [synthesis]="deliberation.synthesis"
+      [disagreements]="deliberation.disagreements"
+      [minorityReports]="deliberation.minority_reports"
+    ></app-synthesis-panel>
+
+    <div class="perspectives-list" *ngIf="activeTab === 'perspectives'">
+      <app-perspective-card
+        *ngFor="let perspective of deliberation.perspectives"
+        [perspective]="perspective"
+        [isExpanded]="expandedPerspective === perspective.member_id"
+        (toggle)="togglePerspective(perspective.member_id)"
+      ></app-perspective-card>
+    </div>
+  </div>
+</div>

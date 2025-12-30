@@ -18,6 +18,12 @@ from .config import load_config, SovereignCouncilConfig
 from .council import CouncilOrchestrator, Deliberation
 from .gateway import InferenceGateway, GatewayError
 from .privacy import verify_privacy_mode, PrivacyViolation, PrivacyVerification
+from .persistence import (
+    DeliberationStore,
+    PersistenceError,
+    DecryptionError,
+    SecureDeletionError,
+)
 
 # Configure logging (never log query content)
 logging.basicConfig(
@@ -31,16 +37,25 @@ logger = logging.getLogger("sovereign_council")
 _config: SovereignCouncilConfig | None = None
 _gateway: InferenceGateway | None = None
 _privacy_verification: PrivacyVerification | None = None
+_store: DeliberationStore | None = None
+
+# In-memory cache for current session deliberations (ephemeral by default)
+_session_deliberations: dict[str, Deliberation] = {}
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan manager."""
-    global _config, _gateway, _privacy_verification
+    global _config, _gateway, _privacy_verification, _store
 
     # Load configuration
     logger.info("Loading configuration...")
     _config = load_config()
+
+    # Initialize deliberation store
+    storage_dir = Path(__file__).parent.parent.parent / "data" / "deliberations"
+    _store = DeliberationStore(storage_dir)
+    logger.info(f"Deliberation store initialized at {storage_dir}")
     logger.info(f"Privacy mode: {_config.privacy_mode.value}")
 
     # Verify privacy mode
@@ -149,6 +164,42 @@ class ConsentBannerResponse(BaseModel):
     dismissable: bool
 
 
+# Persistence request/response models
+class SaveDeliberationRequest(BaseModel):
+    """Request to save a deliberation."""
+
+    deliberation_id: str
+    passphrase: str  # User-provided encryption passphrase
+
+
+class SaveDeliberationResponse(BaseModel):
+    """Response after saving a deliberation."""
+
+    id: str
+    saved: bool
+    message: str
+
+
+class LoadDeliberationRequest(BaseModel):
+    """Request to load a deliberation."""
+
+    deliberation_id: str
+    passphrase: str
+
+
+class ForgetDeliberationRequest(BaseModel):
+    """Request to securely delete a deliberation."""
+
+    deliberation_id: str
+
+
+class ListDeliberationsResponse(BaseModel):
+    """Response listing saved deliberation IDs."""
+
+    deliberation_ids: list[str]
+    count: int
+
+
 # Endpoints
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
@@ -201,6 +252,9 @@ async def deliberate(request: DeliberationRequest):
         )
 
         deliberation = await orchestrator.deliberate(request.question)
+
+        # Cache in session for potential saving (ephemeral by default)
+        _session_deliberations[deliberation.id] = deliberation
 
         logger.info(f"Deliberation complete: {deliberation.id}")
 
@@ -283,6 +337,167 @@ async def privacy_status():
         "message": _privacy_verification.message,
         "warnings": _privacy_verification.warnings,
     }
+
+
+# Persistence endpoints
+@app.post("/deliberations/save", response_model=SaveDeliberationResponse)
+async def save_deliberation(request: SaveDeliberationRequest):
+    """
+    Save a deliberation with encryption.
+
+    The deliberation is encrypted with your passphrase before storage.
+    We cannot read your saved deliberations. If you lose your passphrase,
+    your data is gone forever. This is a feature, not a bug.
+    """
+    if not _store:
+        raise HTTPException(status_code=503, detail="Store not initialized")
+
+    # Check if deliberation exists in session
+    deliberation = _session_deliberations.get(request.deliberation_id)
+    if not deliberation:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Deliberation {request.deliberation_id} not found in current session",
+        )
+
+    try:
+        path = _store.save(deliberation, request.passphrase)
+        logger.info(f"Deliberation saved: {request.deliberation_id}")
+
+        return SaveDeliberationResponse(
+            id=request.deliberation_id,
+            saved=True,
+            message="Deliberation encrypted and saved successfully",
+        )
+
+    except PersistenceError as e:
+        logger.error(f"Failed to save deliberation: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/deliberations/load", response_model=DeliberationResponse)
+async def load_deliberation(request: LoadDeliberationRequest):
+    """
+    Load and decrypt a saved deliberation.
+
+    Requires the passphrase used when saving. Wrong passphrase = no data.
+    """
+    if not _store:
+        raise HTTPException(status_code=503, detail="Store not initialized")
+
+    try:
+        deliberation = _store.load(request.deliberation_id, request.passphrase)
+
+        # Cache in session
+        _session_deliberations[deliberation.id] = deliberation
+
+        logger.info(f"Deliberation loaded: {request.deliberation_id}")
+
+        # Build response (same as deliberate endpoint)
+        confidence = None
+        if deliberation.synthesis.confidence:
+            confidence = ConfidenceResponse(
+                overall=deliberation.synthesis.confidence.overall,
+                consensus_strength=deliberation.synthesis.confidence.consensus_strength,
+                dissent_strength=deliberation.synthesis.confidence.dissent_strength,
+                reasoning=deliberation.synthesis.confidence.reasoning,
+            )
+
+        return DeliberationResponse(
+            id=deliberation.id,
+            question=deliberation.question,
+            synthesis=deliberation.synthesis.content,
+            confidence=confidence,
+            perspectives=[
+                {
+                    "id": p.member_id,
+                    "character": p.character,
+                    "content": p.content,
+                }
+                for p in deliberation.perspectives
+            ],
+            disagreements=[
+                {
+                    "topic": d.topic,
+                    "description": d.description,
+                    "positions": d.positions,
+                }
+                for d in deliberation.disagreements
+            ],
+            minority_reports=[
+                {
+                    "member_id": mr.member_id,
+                    "position": mr.position,
+                    "rationale": mr.rationale,
+                }
+                for mr in deliberation.minority_reports
+            ],
+        )
+
+    except DecryptionError:
+        raise HTTPException(
+            status_code=401,
+            detail="Decryption failed. Wrong passphrase or corrupted data.",
+        )
+    except PersistenceError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.post("/deliberations/forget")
+async def forget_deliberation(request: ForgetDeliberationRequest):
+    """
+    Securely delete a saved deliberation.
+
+    The right to be forgotten, implemented literally.
+    Data is overwritten before deletion.
+    """
+    if not _store:
+        raise HTTPException(status_code=503, detail="Store not initialized")
+
+    try:
+        _store.forget(request.deliberation_id)
+
+        # Also remove from session cache if present
+        _session_deliberations.pop(request.deliberation_id, None)
+
+        logger.info(f"Deliberation forgotten: {request.deliberation_id}")
+
+        return {
+            "id": request.deliberation_id,
+            "forgotten": True,
+            "message": "Deliberation securely deleted",
+        }
+
+    except SecureDeletionError as e:
+        logger.error(f"Failed to forget deliberation: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/deliberations", response_model=ListDeliberationsResponse)
+async def list_deliberations():
+    """
+    List saved deliberation IDs.
+
+    Note: Only IDs are returned. Content requires passphrase to decrypt.
+    """
+    if not _store:
+        raise HTTPException(status_code=503, detail="Store not initialized")
+
+    ids = _store.list_ids()
+    return ListDeliberationsResponse(
+        deliberation_ids=ids,
+        count=len(ids),
+    )
+
+
+@app.get("/deliberations/{deliberation_id}/exists")
+async def deliberation_exists(deliberation_id: str):
+    """Check if a saved deliberation exists."""
+    if not _store:
+        raise HTTPException(status_code=503, detail="Store not initialized")
+
+    exists = _store.exists(deliberation_id)
+    return {"id": deliberation_id, "exists": exists}
 
 
 # Error handlers

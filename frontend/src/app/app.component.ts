@@ -15,7 +15,7 @@ export class AppComponent {
   private readonly privacyService = inject(PrivacyService);
 
   // Convert observables to signals
-  readonly status = toSignal(this.privacyService.status$);
+  readonly status = toSignal(this.privacyService.status$, { initialValue: null });
   readonly loading = toSignal(this.privacyService.loading$, { initialValue: true });
   readonly consentDismissed = toSignal(this.privacyService.consentDismissed$, { initialValue: false });
 

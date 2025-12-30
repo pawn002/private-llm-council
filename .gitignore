@@ -53,6 +53,10 @@ conversations/
 .env.local
 .env.*.local
 
+# Node.js
+node_modules/
+.angular/
+
 # OS
 .DS_Store
 Thumbs.db

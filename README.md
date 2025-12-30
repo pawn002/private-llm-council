@@ -1,8 +1,8 @@
-# The Sovereign Council
+# The Private Council
 
-> Your deliberations belong to you.
+> Your deliberations can remain entirely yours.
 
-A privacy-first local LLM council for deliberative AI assistance. Inspired by [Karpathy's llm-council](https://github.com/karpathy/llm-council), rebuilt from the ground up with privacy as the architectural foundation.
+A privacy-first local LLM council for AI-assisted deliberation. Inspired by [Karpathy's llm-council](https://github.com/karpathy/llm-council), rebuilt with privacy as an architectural foundation.
 
 ## What Is This?
 
@@ -12,15 +12,15 @@ A council of locally-hosted language models that deliberate on your questions:
 2. **Peer review** - Models critique each other's responses (anonymized to prevent bias)
 3. **Synthesis with dissent** - A chairman model synthesizes the discussion while preserving disagreement
 
-All of this happens **entirely on your machine**. No queries leave your hardware. No responses are logged externally. No telemetry phones home.
+Everything happens **entirely on your machine**. No queries leave your hardware. No responses are logged externally. No telemetry is collected.
 
-## Why?
+## Why Local?
 
-When you ask difficult questions—about relationships, career decisions, health concerns, ethical dilemmas—you engage in intellectual intimacy. That intimacy deserves a private space, not a public square.
+When you work through difficult questions—about relationships, career decisions, health concerns, ethical dilemmas—you're engaging in personal reflection. Some people prefer that reflection to happen in a space they fully control.
 
-Cloud AI services collapse this distinction. You type as if in private, but speak into infrastructure you don't control.
+Cloud AI services are convenient and powerful. For many use cases, they work well. This project offers an alternative for those who want complete local control.
 
-This project restores the distinction. See [MANIFESTO.md](MANIFESTO.md) for the full philosophy.
+See [MANIFESTO.md](MANIFESTO.md) for the full philosophy.
 
 ## Privacy Modes
 
@@ -121,15 +121,23 @@ See the file for detailed documentation of each setting.
 
 ## Key Decisions
 
-This implementation reflects specific value choices:
+This implementation reflects specific choices:
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
 | Default privacy mode | Sanctuary | Balance between security and usability |
 | Minimum council size | 2 (warn below 3) | Allow operation on limited hardware |
-| Chairman fallback | Allowed | Don't block users with modest hardware |
+| Chairman fallback | Allowed | Support users with modest hardware |
 | Encryption for saves | Required | If worth saving, worth encrypting |
-| Consent banner | Always shown, user-dismissable | Transparency is non-negotiable |
+| Consent banner | Always shown, user-dismissable | Transparency matters |
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [MANIFESTO.md](MANIFESTO.md) | Project philosophy and values |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Technical architecture and design decisions |
+| [docs/HARDWARE_REQUIREMENTS.md](docs/HARDWARE_REQUIREMENTS.md) | Hardware sizing guide |
 
 ## Project Structure
 
@@ -142,6 +150,9 @@ private-llm-council/
 ├── .env.example              # Environment configuration template
 ├── config/
 │   └── sovereign_council.yaml  # Configuration (values declaration)
+├── docs/
+│   ├── ARCHITECTURE.md       # Technical architecture
+│   └── HARDWARE_REQUIREMENTS.md  # Hardware guide
 ├── backend/
 │   ├── Dockerfile            # Backend container
 │   ├── pyproject.toml        # Python dependencies
@@ -195,7 +206,7 @@ For detailed hardware guidance including GPU comparisons, Apple Silicon support,
 
 - **Not a cost-saving measure** - Local inference often costs more than cloud
 - **Not a performance optimization** - Local is usually slower
-- **Not paranoid** - Believing your thoughts deserve privacy is dignity, not paranoia
+- **Not a criticism of cloud services** - They have legitimate uses; we offer an alternative
 - **Not a product** - No business model, no telemetry, no premium tier
 
 ## Contributing
@@ -210,4 +221,3 @@ MIT
 
 - [Andrej Karpathy](https://github.com/karpathy) for the original llm-council concept
 - The open-source LLM community for making local inference possible
-- Everyone who believes that some spaces should remain private

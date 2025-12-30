@@ -14,7 +14,7 @@ The Private Council is a local-first AI deliberation system that runs multiple l
 │  │                    PRIVACY BOUNDARY                          │    │
 │  │                                                              │    │
 │  │   ┌──────────┐     ┌──────────────┐                         │    │
-│  │   │  React   │────▶│   FastAPI    │                         │    │
+│  │   │ Angular  │────▶│   FastAPI    │                         │    │
 │  │   │ Frontend │◀────│   Backend    │                         │    │
 │  │   └──────────┘     └──────┬───────┘                         │    │
 │  │                           │                                  │    │
@@ -51,7 +51,7 @@ The Private Council is a local-first AI deliberation system that runs multiple l
 
 ## Core Components
 
-### Frontend (React + TypeScript)
+### Frontend (Angular + TypeScript)
 
 A single-page application providing:
 - Question input interface
@@ -268,7 +268,7 @@ docker compose up -d
 Services:
 - **ollama**: Inference gateway with GPU passthrough
 - **backend**: FastAPI application
-- **frontend**: React UI served by nginx
+- **frontend**: Angular UI served by nginx
 
 ### Manual Installation
 
@@ -292,7 +292,7 @@ cd frontend && npm install && npm run dev
 
 | Layer | Technology | Purpose |
 |-------|------------|---------|
-| Frontend | React, TypeScript, Vite | User interface |
+| Frontend | Angular, TypeScript | User interface |
 | Backend | FastAPI, Python 3.10+ | API and orchestration |
 | Inference | Ollama (default), vLLM | Local LLM serving |
 | Encryption | AES-256-GCM | Deliberation storage |

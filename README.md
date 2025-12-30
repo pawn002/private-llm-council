@@ -169,8 +169,8 @@ private-llm-council/
     ├── Dockerfile            # Frontend container
     ├── nginx.conf            # Production web server config
     ├── src/
-    │   ├── components/       # React components
-    │   ├── hooks/            # Custom React hooks
+    │   ├── components/       # Angular components
+    │   ├── services/         # Angular services
     │   ├── api/              # API client
     │   └── types/            # TypeScript definitions
     └── ...

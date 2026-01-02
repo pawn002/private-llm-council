@@ -33,6 +33,8 @@ See [MANIFESTO.md](MANIFESTO.md) for the full philosophy.
 
 ## Quick Start
 
+> **New to Python, Docker, or Ollama?** See our [Complete Getting Started Guide](docs/GETTING_STARTED.md) for step-by-step installation instructions.
+
 ### Prerequisites
 
 **Standard Setup:**
@@ -169,6 +171,7 @@ This implementation reflects specific choices:
 
 | Document | Description |
 |----------|-------------|
+| [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) | **Complete beginner's guide** - Start here if new to Python/Docker/Ollama |
 | [MANIFESTO.md](MANIFESTO.md) | Project philosophy and values |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Technical architecture and design decisions |
 | [docs/HARDWARE_REQUIREMENTS.md](docs/HARDWARE_REQUIREMENTS.md) | Hardware sizing guide (including Tier 0: Modest Hardware) |

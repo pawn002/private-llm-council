@@ -7,14 +7,12 @@
 #   docker compose down         # Stop services
 #   docker compose down -v      # Stop and remove volumes
 
-version: '3.8'
-
 services:
   # Backend API service
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: sovereign-council-api
     restart: unless-stopped
     environment:

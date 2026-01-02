@@ -6,6 +6,7 @@ Your deliberations belong to you.
 """
 
 import logging
+import os
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -50,10 +51,18 @@ async def lifespan(app: FastAPI):
 
     # Load configuration
     logger.info("Loading configuration...")
-    _config = load_config()
+    config_path_str = os.getenv("SOVEREIGN_COUNCIL_CONFIG")
+    config_path = Path(config_path_str) if config_path_str else None
+    _config = load_config(config_path)
 
     # Initialize deliberation store
-    storage_dir = Path(__file__).parent.parent.parent / "data" / "deliberations"
+    # Use environment variable if set, otherwise fall back to calculated path
+    data_dir = os.getenv("SOVEREIGN_COUNCIL_DATA_DIR")
+    if data_dir:
+        storage_dir = Path(data_dir) / "deliberations"
+    else:
+        # Fallback: two parents up from src/main.py = /app, then /app/data
+        storage_dir = Path(__file__).parent.parent / "data" / "deliberations"
     _store = DeliberationStore(storage_dir)
     logger.info(f"Deliberation store initialized at {storage_dir}")
     logger.info(f"Privacy mode: {_config.privacy_mode.value}")
@@ -245,6 +254,19 @@ async def deliberate(request: DeliberationRequest):
     logger.info("Deliberation requested")
 
     try:
+        # Check gateway health before attempting deliberation
+        if _gateway:
+            gateway_health = await _gateway.health_check()
+            if not gateway_health.healthy:
+                raise HTTPException(
+                    status_code=503,
+                    detail=(
+                        f"Inference gateway is unavailable: {gateway_health.message}. "
+                        f"Please ensure Ollama is running at {_config.gateway.url} "
+                        f"and the required models are pulled."
+                    )
+                )
+
         orchestrator = CouncilOrchestrator(
             gateway=_gateway,
             config=_config.council,
@@ -308,7 +330,22 @@ async def deliberate(request: DeliberationRequest):
         )
 
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        error_msg = str(e)
+
+        # Provide more helpful message if it's about insufficient members
+        if "Insufficient council members" in error_msg:
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    f"{error_msg} This typically means the inference gateway "
+                    f"(Ollama) is not responding. Please check:\n"
+                    f"1. Ollama is running at {_config.gateway.url}\n"
+                    f"2. Required models are pulled: {', '.join([m.model for m in _config.council.members])}\n"
+                    f"3. Network connectivity to the gateway"
+                )
+            )
+        else:
+            raise HTTPException(status_code=400, detail=error_msg)
     except GatewayError as e:
         logger.error(f"Gateway error during deliberation: {e}")
         raise HTTPException(status_code=502, detail=f"Inference gateway error: {e}")
@@ -324,7 +361,7 @@ async def list_models():
     return {"models": models}
 
 
-@app.get("/privacy-status")
+@app.get("/privacy/status")
 async def privacy_status():
     """Get current privacy mode verification status."""
     if not _privacy_verification or not _config:

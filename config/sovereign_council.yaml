@@ -22,8 +22,8 @@ identity:
 # ============================================================================
 privacy:
   # Options: sovereign | sanctuary | citadel
-  # Default: sanctuary (balanced security and usability)
-  mode: "sanctuary"
+  # Default: citadel (for Docker deployments)
+  mode: "citadel"
 
   modes:
     sovereign:
@@ -54,7 +54,8 @@ gateway:
   provider: "ollama"
 
   # Base URL for the inference API
-  url: "http://localhost:11434/v1"
+  # Use host.docker.internal to access host machine from Docker container
+  url: "http://host.docker.internal:11434/v1"
 
   # Local inference is slower than cloud - be patient
   timeout_seconds: 120
@@ -81,27 +82,27 @@ gateway:
 council:
   members:
     - id: "phi"
-      model: "llama3.2:8b"
+      model: "llama3.2:1b"
       # Capability rationale (DevOps perspective)
-      capability: "Strong general reasoning and instruction following"
+      capability: "Fast lightweight reasoning"
       # Epistemic rationale (Philosophical perspective)
-      character: "Western analytical tradition, Silicon Valley optimism"
+      character: "Quick analytical responses"
       temperature: 0.7
 
     - id: "psi"
-      model: "mistral:7b"
-      capability: "Excellent instruction following, structured outputs"
-      character: "European regulatory mindset, GDPR-informed caution"
+      model: "tinyllama:1.1b"
+      capability: "Ultra-fast inference, good for quick tasks"
+      character: "Efficient minimalist perspective"
       temperature: 0.7
 
     - id: "omega"
-      model: "qwen2.5:7b"
-      capability: "Diverse training corpus, multilingual strength"
-      character: "Eastern philosophical traditions, different cultural priors"
+      model: "qwen2.5:0.5b"
+      capability: "Lightweight multilingual model"
+      character: "Compact diverse viewpoint"
       temperature: 0.7
 
   chairman:
-    model: "llama3.2:70b"
+    model: "llama3.2:1b"
     capability: "Large context window needed for synthesis"
     role: "Synthesizer and dissent-preserver, not arbiter of truth"
     temperature: 0.3

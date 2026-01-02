@@ -54,6 +54,7 @@ class GatewayConfig(BaseModel):
     timeout_seconds: int = 120
     retry_attempts: int = 3
     retry_delay_seconds: int = 2
+    warmup: bool = False
 
 
 class PersistenceConfig(BaseModel):
@@ -159,12 +160,16 @@ def _parse_config(raw: dict[str, Any]) -> SovereignCouncilConfig:
     gateway = GatewayConfig()
     if "gateway" in raw:
         gw = raw["gateway"]
+        warmup_enabled = False
+        if "warmup" in gw and isinstance(gw["warmup"], dict):
+            warmup_enabled = gw["warmup"].get("enabled", False)
         gateway = GatewayConfig(
             provider=gw.get("provider", "ollama"),
             url=gw.get("url", "http://localhost:11434/v1"),
             timeout_seconds=gw.get("timeout_seconds", 120),
             retry_attempts=gw.get("retry_attempts", 3),
             retry_delay_seconds=gw.get("retry_delay_seconds", 2),
+            warmup=warmup_enabled,
         )
 
     # Extract council config

@@ -13,15 +13,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy requirements first for caching
-COPY pyproject.toml .
-COPY src/__init__.py src/
+COPY backend/pyproject.toml .
+COPY backend/src/__init__.py src/
+COPY README.md ../README.md
 
 # Install Python dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir .
 
 # Copy application code
-COPY src/ src/
+COPY backend/src/ src/
 
 # Create data directory for persistent storage
 RUN mkdir -p /app/data && chown -R council:council /app

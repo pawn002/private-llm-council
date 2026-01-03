@@ -1,9 +1,12 @@
 import { Component, input } from '@angular/core';
 import { Synthesis, Disagreement, MinorityReport } from '../../models';
+import { ConfidenceMeterComponent } from '../confidence-meter/confidence-meter.component';
+import { ListSectionComponent } from '../list-section/list-section.component';
 
 @Component({
   selector: 'app-synthesis-panel',
   standalone: true,
+  imports: [ConfidenceMeterComponent, ListSectionComponent],
   templateUrl: './synthesis-panel.component.html',
   styleUrls: ['./synthesis-panel.component.scss'],
 })
@@ -12,16 +15,6 @@ export class SynthesisPanelComponent {
   readonly synthesis = input.required<Synthesis>();
   readonly disagreements = input<Disagreement[]>([]);
   readonly minorityReports = input<MinorityReport[]>([]);
-
-  getConfidencePercentage(value: number): number {
-    return Math.round(value * 100);
-  }
-
-  getConfidenceColor(value: number): string {
-    if (value >= 0.7) return 'bg-green';
-    if (value >= 0.4) return 'bg-yellow';
-    return 'bg-red';
-  }
 
   getSeverityClass(severity?: string): string {
     switch (severity) {

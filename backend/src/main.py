@@ -310,6 +310,27 @@ def require_store(func):
     return wrapper
 
 
+async def check_gateway_health() -> tuple[bool, str | None]:
+    """
+    Check if the inference gateway is healthy.
+
+    Returns:
+        Tuple of (is_healthy, error_message).
+        If healthy, error_message is None.
+    """
+    if not _gateway or not _config:
+        return False, "System not initialized"
+
+    health = await _gateway.health_check()
+    if not health.healthy:
+        return False, (
+            f"Inference gateway is unavailable: {health.message}. "
+            f"Please ensure Ollama is running at {_config.gateway.url} "
+            f"and the required models are pulled."
+        )
+    return True, None
+
+
 # Endpoints
 @app.get("/health", response_model=HealthResponse)
 @require_initialized
@@ -352,17 +373,9 @@ async def deliberate(request: DeliberationRequest):
 
     try:
         # Check gateway health before attempting deliberation
-        if _gateway:
-            gateway_health = await _gateway.health_check()
-            if not gateway_health.healthy:
-                raise HTTPException(
-                    status_code=503,
-                    detail=(
-                        f"Inference gateway is unavailable: {gateway_health.message}. "
-                        f"Please ensure Ollama is running at {_config.gateway.url} "
-                        f"and the required models are pulled."
-                    )
-                )
+        healthy, error_msg = await check_gateway_health()
+        if not healthy:
+            raise HTTPException(status_code=503, detail=error_msg)
 
         orchestrator = CouncilOrchestrator(
             gateway=_gateway,
@@ -433,17 +446,10 @@ async def deliberate_stream(question: str):
             logger.info("Streaming deliberation requested")
 
             # Check gateway health before attempting deliberation
-            if _gateway:
-                gateway_health = await _gateway.health_check()
-                if not gateway_health.healthy:
-                    yield sse_event("error", {
-                        "message": (
-                            f"Inference gateway is unavailable: {gateway_health.message}. "
-                            f"Please ensure Ollama is running at {_config.gateway.url} "
-                            f"and the required models are pulled."
-                        )
-                    })
-                    return
+            healthy, error_msg = await check_gateway_health()
+            if not healthy:
+                yield sse_event("error", {"message": error_msg})
+                return
 
             # Create queue for status messages
             import asyncio

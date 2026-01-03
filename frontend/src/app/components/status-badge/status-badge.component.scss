@@ -1,0 +1,19 @@
+.status-badge {
+  display: inline;
+
+  .accent {
+    font-weight: 500;
+  }
+
+  .text-green {
+    color: #22c55e;
+  }
+
+  .text-yellow {
+    color: #eab308;
+  }
+
+  .text-red {
+    color: #ef4444;
+  }
+}

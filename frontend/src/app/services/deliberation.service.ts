@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { ApiService } from './api.service';
 import { Deliberation, DeliberationPhase } from '../models';
+import { subscribeWithPromise } from '../utils';
 
 export interface DeliberationState {
   phase: DeliberationPhase;
@@ -110,15 +111,11 @@ export class DeliberationService {
       return Promise.resolve(false);
     }
 
-    return new Promise((resolve) => {
-      this.api.saveDeliberation(deliberation.id, passphrase).subscribe({
-        next: () => resolve(true),
-        error: (err) => {
-          this.setError(err.message || 'Failed to save deliberation');
-          resolve(false);
-        },
-      });
-    });
+    return subscribeWithPromise(
+      this.api.saveDeliberation(deliberation.id, passphrase),
+      () => {},
+      (err) => this.setError(err.message || 'Failed to save deliberation')
+    );
   }
 
   load(id: string, passphrase: string): Promise<boolean> {
@@ -129,23 +126,18 @@ export class DeliberationService {
       error: null,
     });
 
-    return new Promise((resolve) => {
-      this.api.loadDeliberation(id, passphrase).subscribe({
-        next: (deliberation) => {
-          this.updateState({
-            phase: 'complete',
-            statusMessage: 'Deliberation loaded',
-            deliberation,
-            error: null,
-          });
-          resolve(true);
-        },
-        error: (err) => {
-          this.setError(err.message || 'Failed to load deliberation');
-          resolve(false);
-        },
-      });
-    });
+    return subscribeWithPromise(
+      this.api.loadDeliberation(id, passphrase),
+      (deliberation) => {
+        this.updateState({
+          phase: 'complete',
+          statusMessage: 'Deliberation loaded',
+          deliberation,
+          error: null,
+        });
+      },
+      (err) => this.setError(err.message || 'Failed to load deliberation')
+    );
   }
 
   forget(): Promise<boolean> {
@@ -155,18 +147,11 @@ export class DeliberationService {
       return Promise.resolve(false);
     }
 
-    return new Promise((resolve) => {
-      this.api.forgetDeliberation(deliberation.id).subscribe({
-        next: () => {
-          this.reset();
-          resolve(true);
-        },
-        error: (err) => {
-          this.setError(err.message || 'Failed to forget deliberation');
-          resolve(false);
-        },
-      });
-    });
+    return subscribeWithPromise(
+      this.api.forgetDeliberation(deliberation.id),
+      () => this.reset(),
+      (err) => this.setError(err.message || 'Failed to forget deliberation')
+    );
   }
 
   reset(): void {

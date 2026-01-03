@@ -1,0 +1,18 @@
+@if (items().length > 0) {
+  <div class="card" [class]="cardClass()">
+    <h3>
+      @if (icon()) {
+        <span>{{ icon() }}</span>
+      }
+      {{ title() }}
+    </h3>
+    <ul>
+      @for (item of items(); track item) {
+        <li>
+          <span class="bullet" [class]="bulletColor()">•</span>
+          {{ item }}
+        </li>
+      }
+    </ul>
+  </div>
+}

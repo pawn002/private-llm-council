@@ -1,0 +1,35 @@
+.meter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.meter-label {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  width: 6rem;
+}
+
+.meter-track {
+  flex: 1;
+  height: 0.5rem;
+  background-color: var(--council-border);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.meter-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+
+  &.bg-green { background-color: #22c55e; }
+  &.bg-yellow { background-color: #eab308; }
+  &.bg-red { background-color: #ef4444; }
+}
+
+.meter-value {
+  font-size: 0.75rem;
+  color: #d1d5db;
+  width: 3rem;
+  text-align: right;
+}

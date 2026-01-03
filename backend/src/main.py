@@ -163,6 +163,8 @@ class DeliberationResponse(BaseModel):
     perspectives: list[dict]
     disagreements: list[dict]
     minority_reports: list[dict]
+    timestamp: str  # ISO 8601 format timestamp
+    session_id: str
 
 
 class HealthResponse(BaseModel):
@@ -344,6 +346,8 @@ async def deliberate(request: DeliberationRequest):
                 }
                 for mr in deliberation.minority_reports
             ],
+            timestamp=deliberation.timestamp.isoformat(),
+            session_id=deliberation.session_id,
         )
 
     except ValueError as e:
@@ -526,6 +530,8 @@ async def deliberate_stream(question: str):
                     }
                     for mr in deliberation.minority_reports
                 ],
+                "timestamp": deliberation.timestamp.isoformat(),
+                "session_id": deliberation.session_id,
             }
 
             # Send completion event
@@ -671,13 +677,21 @@ async def load_deliberation(request: LoadDeliberationRequest):
         return DeliberationResponse(
             id=deliberation.id,
             question=deliberation.question,
-            synthesis=deliberation.synthesis.content,
-            confidence=confidence,
+            synthesis={
+                "content": deliberation.synthesis.content,
+                "consensus_points": deliberation.synthesis.consensus_points,
+                "divisions": deliberation.synthesis.divisions,
+                "unique_insights": deliberation.synthesis.unique_insights,
+                "confidence": confidence.dict() if confidence else None,
+            },
+            confidence=None,  # Deprecated - confidence now inside synthesis
             perspectives=[
                 {
-                    "id": p.member_id,
+                    "member_id": p.member_id,
+                    "model": p.model,
                     "character": p.character,
                     "content": p.content,
+                    "timestamp": p.timestamp.isoformat(),
                 }
                 for p in deliberation.perspectives
             ],
@@ -697,6 +711,8 @@ async def load_deliberation(request: LoadDeliberationRequest):
                 }
                 for mr in deliberation.minority_reports
             ],
+            timestamp=deliberation.timestamp.isoformat(),
+            session_id=deliberation.session_id,
         )
 
     except DecryptionError:

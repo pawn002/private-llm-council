@@ -1,25 +1,25 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
 import { ApiService } from './api.service';
 import { PrivacyStatus } from '../models';
+import { StateSubject } from '../utils';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PrivacyService {
-  private statusSubject = new BehaviorSubject<PrivacyStatus | null>(null);
-  private loadingSubject = new BehaviorSubject<boolean>(true);
-  private errorSubject = new BehaviorSubject<string | null>(null);
-  private consentDismissedSubject = new BehaviorSubject<boolean>(false);
+  private statusSubject = new StateSubject<PrivacyStatus | null>(null);
+  private loadingSubject = new StateSubject<boolean>(true);
+  private errorSubject = new StateSubject<string | null>(null);
+  private consentDismissedSubject = new StateSubject<boolean>(false);
 
-  status$ = this.statusSubject.asObservable();
-  loading$ = this.loadingSubject.asObservable();
-  error$ = this.errorSubject.asObservable();
-  consentDismissed$ = this.consentDismissedSubject.asObservable();
+  status$ = this.statusSubject.$;
+  loading$ = this.loadingSubject.$;
+  error$ = this.errorSubject.$;
+  consentDismissed$ = this.consentDismissedSubject.$;
 
   constructor(private api: ApiService) {
     // Banner is always shown on initial load (no persistence)
-    this.consentDismissedSubject.next(false);
+    this.consentDismissedSubject.set(false);
 
     // Fetch privacy status
     this.refreshStatus();
@@ -43,20 +43,20 @@ export class PrivacyService {
 
   dismissConsent(): void {
     // Only dismiss for current page session (no persistence)
-    this.consentDismissedSubject.next(true);
+    this.consentDismissedSubject.set(true);
   }
 
   refreshStatus(): void {
-    this.loadingSubject.next(true);
+    this.loadingSubject.set(true);
     this.api.getPrivacyStatus().subscribe({
       next: (status) => {
-        this.statusSubject.next(status);
-        this.loadingSubject.next(false);
-        this.errorSubject.next(null);
+        this.statusSubject.set(status);
+        this.loadingSubject.set(false);
+        this.errorSubject.set(null);
       },
       error: (err) => {
-        this.loadingSubject.next(false);
-        this.errorSubject.next(err.message || 'Failed to check privacy status');
+        this.loadingSubject.set(false);
+        this.errorSubject.set(err.message || 'Failed to check privacy status');
       },
     });
   }

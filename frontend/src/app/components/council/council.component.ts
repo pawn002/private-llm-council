@@ -3,8 +3,9 @@ import { FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { DeliberationService } from '../../services/deliberation.service';
 import { DeliberationViewComponent } from '../deliberation-view/deliberation-view.component';
+import { ErrorStateComponent } from '../error-state/error-state.component';
+import { LoadingStateComponent } from '../loading-state/loading-state.component';
 import { SaveLoadDialogComponent } from '../save-load-dialog/save-load-dialog.component';
-import { DeliberationPhase } from '../../models';
 
 @Component({
   selector: 'app-council',
@@ -12,6 +13,8 @@ import { DeliberationPhase } from '../../models';
   imports: [
     FormsModule,
     DeliberationViewComponent,
+    ErrorStateComponent,
+    LoadingStateComponent,
     SaveLoadDialogComponent,
   ],
   templateUrl: './council.component.html',
@@ -34,35 +37,6 @@ export class CouncilComponent {
     const phase = this.state().phase;
     return ['gathering', 'reviewing', 'synthesizing', 'analyzing'].includes(phase);
   });
-
-  readonly elapsedTime = computed(() => {
-    const seconds = this.state().elapsedSeconds;
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}m ${remainingSeconds}s`;
-  });
-
-  readonly phaseMessages: Record<DeliberationPhase, string> = {
-    idle: '',
-    gathering: 'Gathering perspectives from council members...',
-    reviewing: 'Council members reviewing each other...',
-    synthesizing: 'Chairman synthesizing perspectives...',
-    analyzing: 'Analyzing disagreements and minority positions...',
-    complete: 'Deliberation complete',
-    error: 'An error occurred',
-  };
-
-  readonly phaseIcons: Record<DeliberationPhase, string> = {
-    idle: '',
-    gathering: '🎭',
-    reviewing: '👁️',
-    synthesizing: '⚖️',
-    analyzing: '🔍',
-    complete: '✅',
-    error: '❌',
-  };
-
-  readonly phases: DeliberationPhase[] = ['gathering', 'reviewing', 'synthesizing', 'analyzing'];
 
   onSubmit(): void {
     const q = this.question().trim();
@@ -118,9 +92,5 @@ export class CouncilComponent {
 
   closeDialog(): void {
     this.dialogMode.set(null);
-  }
-
-  getPhaseIndex(phase: DeliberationPhase): number {
-    return this.phases.indexOf(phase);
   }
 }

@@ -23,6 +23,7 @@ from .gateway import InferenceGateway, GatewayError
 from .privacy import verify_privacy_mode, PrivacyViolation, PrivacyVerification
 from .persistence import (
     DeliberationStore,
+    DeliberationSerializer,
     PersistenceError,
     DecryptionError,
     SecureDeletionError,
@@ -221,74 +222,6 @@ class ListDeliberationsResponse(BaseModel):
     count: int
 
 
-def build_deliberation_response_dict(deliberation: Deliberation) -> dict:
-    """
-    Build a response dictionary from a Deliberation object.
-
-    This helper ensures consistent response structure across all endpoints
-    (POST /deliberate, SSE /deliberate/stream, POST /deliberations/load).
-    """
-    # Build confidence dict if available
-    confidence = None
-    if deliberation.synthesis.confidence:
-        confidence = {
-            "overall": deliberation.synthesis.confidence.overall,
-            "consensus_strength": deliberation.synthesis.confidence.consensus_strength,
-            "dissent_strength": deliberation.synthesis.confidence.dissent_strength,
-            "reasoning": deliberation.synthesis.confidence.reasoning,
-        }
-
-    # Build disagreements with optional severity/implications
-    disagreements = []
-    for d in deliberation.disagreements:
-        disagreement_dict = {
-            "topic": d.topic,
-            "description": d.description,
-            "positions": d.positions,
-        }
-        if hasattr(d, "severity"):
-            disagreement_dict["severity"] = (
-                d.severity.value if hasattr(d.severity, "value") else str(d.severity)
-            )
-        if hasattr(d, "implications"):
-            disagreement_dict["implications"] = d.implications
-        disagreements.append(disagreement_dict)
-
-    return {
-        "id": deliberation.id,
-        "question": deliberation.question,
-        "synthesis": {
-            "content": deliberation.synthesis.content,
-            "consensus_points": deliberation.synthesis.consensus_points,
-            "divisions": deliberation.synthesis.divisions,
-            "unique_insights": deliberation.synthesis.unique_insights,
-            "confidence": confidence,
-        },
-        "confidence": None,  # Deprecated - confidence now inside synthesis
-        "perspectives": [
-            {
-                "member_id": p.member_id,
-                "model": p.model,
-                "character": p.character,
-                "content": p.content,
-                "timestamp": p.timestamp.isoformat(),
-            }
-            for p in deliberation.perspectives
-        ],
-        "disagreements": disagreements,
-        "minority_reports": [
-            {
-                "member_id": mr.member_id,
-                "position": mr.position,
-                "rationale": mr.rationale,
-            }
-            for mr in deliberation.minority_reports
-        ],
-        "timestamp": deliberation.timestamp.isoformat(),
-        "session_id": deliberation.session_id,
-    }
-
-
 # Endpoint guard decorators
 def require_initialized(func):
     """Decorator to ensure gateway and config are initialized."""
@@ -390,7 +323,7 @@ async def deliberate(request: DeliberationRequest):
 
         logger.info(f"Deliberation complete: {deliberation.id}")
 
-        return DeliberationResponse(**build_deliberation_response_dict(deliberation))
+        return DeliberationResponse(**DeliberationSerializer.to_api_response(deliberation))
 
     except ValueError as e:
         error_msg = str(e)
@@ -510,7 +443,7 @@ async def deliberate_stream(question: str):
             logger.info(f"Streaming deliberation complete: {deliberation.id}")
 
             # Send completion event
-            yield sse_event("complete", {"deliberation": build_deliberation_response_dict(deliberation)})
+            yield sse_event("complete", {"deliberation": DeliberationSerializer.to_api_response(deliberation)})
 
         except ValueError as e:
             error_msg = str(e)
@@ -636,7 +569,7 @@ async def load_deliberation(request: LoadDeliberationRequest):
 
         logger.info(f"Deliberation loaded: {request.deliberation_id}")
 
-        return DeliberationResponse(**build_deliberation_response_dict(deliberation))
+        return DeliberationResponse(**DeliberationSerializer.to_api_response(deliberation))
 
     except DecryptionError:
         raise HTTPException(

@@ -1,0 +1,67 @@
+.council-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  padding: 2rem;
+}
+
+.loading-card {
+  text-align: center;
+  max-width: 500px;
+  padding: 2rem;
+}
+
+.loading-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.animate-pulse {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.progress-dots {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin: 1.5rem 0;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--color-surface-elevated);
+  transition: all 0.3s ease;
+
+  &.active {
+    background: var(--color-primary);
+    transform: scale(1.2);
+  }
+
+  &.complete {
+    background: var(--color-success);
+  }
+}
+
+.elapsed-time {
+  margin: 1rem 0;
+}
+
+.warning-hint {
+  color: var(--color-warning);
+}
+
+.text-warning {
+  color: var(--color-warning);
+}
+
+.cancel-actions {
+  margin-top: 1.5rem;
+}

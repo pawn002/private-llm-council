@@ -170,64 +170,119 @@ class DeliberationSerializer:
     """Serializes and deserializes Deliberation objects."""
 
     @staticmethod
-    def to_dict(deliberation: Deliberation) -> dict[str, Any]:
-        """Convert a Deliberation to a serializable dictionary."""
+    def _serialize_perspectives(deliberation: Deliberation) -> list[dict[str, Any]]:
+        """Serialize perspectives list."""
+        return [
+            {
+                "member_id": p.member_id,
+                "model": p.model,
+                "character": p.character,
+                "content": p.content,
+                "timestamp": p.timestamp.isoformat(),
+            }
+            for p in deliberation.perspectives
+        ]
+
+    @staticmethod
+    def _serialize_synthesis(deliberation: Deliberation) -> dict[str, Any]:
+        """Serialize synthesis with confidence."""
+        confidence = None
+        if deliberation.synthesis.confidence:
+            confidence = {
+                "overall": deliberation.synthesis.confidence.overall,
+                "consensus_strength": deliberation.synthesis.confidence.consensus_strength,
+                "dissent_strength": deliberation.synthesis.confidence.dissent_strength,
+                "reasoning": deliberation.synthesis.confidence.reasoning,
+            }
+        return {
+            "content": deliberation.synthesis.content,
+            "consensus_points": deliberation.synthesis.consensus_points,
+            "divisions": deliberation.synthesis.divisions,
+            "unique_insights": deliberation.synthesis.unique_insights,
+            "confidence": confidence,
+        }
+
+    @staticmethod
+    def _serialize_disagreements(
+        deliberation: Deliberation, include_extended: bool = False
+    ) -> list[dict[str, Any]]:
+        """Serialize disagreements list.
+
+        Args:
+            deliberation: The deliberation to serialize
+            include_extended: If True, includes severity and implications fields
+        """
+        disagreements = []
+        for d in deliberation.disagreements:
+            disagreement_dict: dict[str, Any] = {
+                "topic": d.topic,
+                "description": d.description,
+                "positions": d.positions,
+            }
+            if include_extended:
+                if hasattr(d, "severity") and d.severity is not None:
+                    disagreement_dict["severity"] = (
+                        d.severity.value if hasattr(d.severity, "value") else str(d.severity)
+                    )
+                if hasattr(d, "implications") and d.implications is not None:
+                    disagreement_dict["implications"] = d.implications
+            disagreements.append(disagreement_dict)
+        return disagreements
+
+    @staticmethod
+    def _serialize_minority_reports(deliberation: Deliberation) -> list[dict[str, Any]]:
+        """Serialize minority reports list."""
+        return [
+            {
+                "member_id": mr.member_id,
+                "position": mr.position,
+                "rationale": mr.rationale,
+            }
+            for mr in deliberation.minority_reports
+        ]
+
+    @staticmethod
+    def to_api_response(deliberation: Deliberation) -> dict[str, Any]:
+        """
+        Serialize deliberation for API responses.
+
+        This format is used by all API endpoints (POST /deliberate,
+        SSE /deliberate/stream, POST /deliberations/load).
+        """
         return {
             "id": deliberation.id,
             "question": deliberation.question,
-            "perspectives": [
-                {
-                    "member_id": p.member_id,
-                    "model": p.model,
-                    "character": p.character,
-                    "content": p.content,
-                    "timestamp": p.timestamp.isoformat(),
-                }
-                for p in deliberation.perspectives
-            ],
-            "critiques": [
-                {
-                    "reviewer_id": c.reviewer_id,
-                    "rankings": c.rankings,
-                    "comments": c.comments,
-                }
-                for c in deliberation.critiques
-            ],
-            "synthesis": {
-                "content": deliberation.synthesis.content,
-                "consensus_points": deliberation.synthesis.consensus_points,
-                "divisions": deliberation.synthesis.divisions,
-                "unique_insights": deliberation.synthesis.unique_insights,
-                "confidence": (
-                    {
-                        "overall": deliberation.synthesis.confidence.overall,
-                        "consensus_strength": deliberation.synthesis.confidence.consensus_strength,
-                        "dissent_strength": deliberation.synthesis.confidence.dissent_strength,
-                        "reasoning": deliberation.synthesis.confidence.reasoning,
-                    }
-                    if deliberation.synthesis.confidence
-                    else None
-                ),
-            },
-            "disagreements": [
-                {
-                    "topic": d.topic,
-                    "positions": d.positions,
-                    "description": d.description,
-                }
-                for d in deliberation.disagreements
-            ],
-            "minority_reports": [
-                {
-                    "member_id": mr.member_id,
-                    "position": mr.position,
-                    "rationale": mr.rationale,
-                }
-                for mr in deliberation.minority_reports
-            ],
+            "synthesis": DeliberationSerializer._serialize_synthesis(deliberation),
+            "confidence": None,  # Deprecated - confidence now inside synthesis
+            "perspectives": DeliberationSerializer._serialize_perspectives(deliberation),
+            "disagreements": DeliberationSerializer._serialize_disagreements(
+                deliberation, include_extended=True
+            ),
+            "minority_reports": DeliberationSerializer._serialize_minority_reports(deliberation),
             "timestamp": deliberation.timestamp.isoformat(),
             "session_id": deliberation.session_id,
         }
+
+    @staticmethod
+    def to_dict(deliberation: Deliberation) -> dict[str, Any]:
+        """
+        Convert a Deliberation to a serializable dictionary for storage.
+
+        This format includes critiques and is used for encrypted persistence.
+        """
+        base = DeliberationSerializer.to_api_response(deliberation)
+        # Remove deprecated field not needed in storage
+        del base["confidence"]
+        # Add critiques for storage (not needed in API responses)
+        base["critiques"] = [
+            {
+                "reviewer_id": c.reviewer_id,
+                "rankings": c.rankings,
+                "comments": c.comments,
+            }
+            for c in deliberation.critiques
+        ]
+        return base
 
     @staticmethod
     def from_dict(data: dict[str, Any]) -> Deliberation:

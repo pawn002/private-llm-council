@@ -3,8 +3,6 @@ import { BehaviorSubject, Observable } from 'rxjs';
 import { ApiService } from './api.service';
 import { PrivacyStatus } from '../models';
 
-const CONSENT_DISMISSED_KEY = 'sovereign_council_consent_dismissed';
-
 @Injectable({
   providedIn: 'root',
 })
@@ -20,9 +18,8 @@ export class PrivacyService {
   consentDismissed$ = this.consentDismissedSubject.asObservable();
 
   constructor(private api: ApiService) {
-    // Check session storage for dismissed consent
-    const dismissed = sessionStorage.getItem(CONSENT_DISMISSED_KEY) === 'true';
-    this.consentDismissedSubject.next(dismissed);
+    // Banner is always shown on initial load (no persistence)
+    this.consentDismissedSubject.next(false);
 
     // Fetch privacy status
     this.refreshStatus();
@@ -45,7 +42,7 @@ export class PrivacyService {
   }
 
   dismissConsent(): void {
-    sessionStorage.setItem(CONSENT_DISMISSED_KEY, 'true');
+    // Only dismiss for current page session (no persistence)
     this.consentDismissedSubject.next(true);
   }
 

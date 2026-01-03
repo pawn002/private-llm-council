@@ -13,6 +13,17 @@ import yaml
 from pydantic import BaseModel, Field
 
 
+# Temperature constants for LLM inference
+class Temperature:
+    """Temperature settings for different prompt types."""
+
+    PERSPECTIVE = 0.7      # Creative individual responses (default in CouncilMember)
+    SYNTHESIS = 0.5        # Balanced synthesis
+    ANALYSIS = 0.3         # Consistent analysis and ranking
+    CONFIDENCE = 0.2       # Deterministic confidence scoring
+    HEALTH_CHECK = 0.0     # Deterministic health check
+
+
 class PrivacyMode(str, Enum):
     """
     The privacy mode spectrum.

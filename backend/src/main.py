@@ -9,6 +9,7 @@ import logging
 import os
 import time
 from contextlib import asynccontextmanager
+from functools import wraps
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
@@ -288,13 +289,32 @@ def build_deliberation_response_dict(deliberation: Deliberation) -> dict:
     }
 
 
+# Endpoint guard decorators
+def require_initialized(func):
+    """Decorator to ensure gateway and config are initialized."""
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        if not _gateway or not _config:
+            raise HTTPException(status_code=503, detail="System not initialized")
+        return await func(*args, **kwargs)
+    return wrapper
+
+
+def require_store(func):
+    """Decorator to ensure persistence store is initialized."""
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        if not _store:
+            raise HTTPException(status_code=503, detail="Store not initialized")
+        return await func(*args, **kwargs)
+    return wrapper
+
+
 # Endpoints
 @app.get("/health", response_model=HealthResponse)
+@require_initialized
 async def health_check():
     """Check system health and privacy status."""
-    if not _gateway or not _config:
-        raise HTTPException(status_code=503, detail="System not initialized")
-
     health = await _gateway.health_check()
 
     return HealthResponse(
@@ -319,6 +339,7 @@ async def get_consent_banner():
 
 
 @app.post("/deliberate", response_model=DeliberationResponse)
+@require_initialized
 async def deliberate(request: DeliberationRequest):
     """
     Submit a question for council deliberation.
@@ -326,9 +347,6 @@ async def deliberate(request: DeliberationRequest):
     The question is processed entirely locally.
     Nothing leaves your machine.
     """
-    if not _gateway or not _config:
-        raise HTTPException(status_code=503, detail="System not initialized")
-
     # Log that a deliberation is occurring (but not the content)
     logger.info("Deliberation requested")
 
@@ -563,6 +581,7 @@ async def privacy_status():
 
 # Persistence endpoints
 @app.post("/deliberations/save", response_model=SaveDeliberationResponse)
+@require_store
 async def save_deliberation(request: SaveDeliberationRequest):
     """
     Save a deliberation with encryption.
@@ -571,8 +590,6 @@ async def save_deliberation(request: SaveDeliberationRequest):
     We cannot read your saved deliberations. If you lose your passphrase,
     your data is gone forever. This is a feature, not a bug.
     """
-    if not _store:
-        raise HTTPException(status_code=503, detail="Store not initialized")
 
     # Check if deliberation exists in session
     deliberation = _session_deliberations.get(request.deliberation_id)
@@ -598,15 +615,13 @@ async def save_deliberation(request: SaveDeliberationRequest):
 
 
 @app.post("/deliberations/load", response_model=DeliberationResponse)
+@require_store
 async def load_deliberation(request: LoadDeliberationRequest):
     """
     Load and decrypt a saved deliberation.
 
     Requires the passphrase used when saving. Wrong passphrase = no data.
     """
-    if not _store:
-        raise HTTPException(status_code=503, detail="Store not initialized")
-
     try:
         deliberation = _store.load(request.deliberation_id, request.passphrase)
 
@@ -627,6 +642,7 @@ async def load_deliberation(request: LoadDeliberationRequest):
 
 
 @app.post("/deliberations/forget")
+@require_store
 async def forget_deliberation(request: ForgetDeliberationRequest):
     """
     Securely delete a saved deliberation.
@@ -634,8 +650,6 @@ async def forget_deliberation(request: ForgetDeliberationRequest):
     The right to be forgotten, implemented literally.
     Data is overwritten before deletion.
     """
-    if not _store:
-        raise HTTPException(status_code=503, detail="Store not initialized")
 
     try:
         _store.forget(request.deliberation_id)
@@ -657,15 +671,13 @@ async def forget_deliberation(request: ForgetDeliberationRequest):
 
 
 @app.get("/deliberations", response_model=ListDeliberationsResponse)
+@require_store
 async def list_deliberations():
     """
     List saved deliberation IDs.
 
     Note: Only IDs are returned. Content requires passphrase to decrypt.
     """
-    if not _store:
-        raise HTTPException(status_code=503, detail="Store not initialized")
-
     ids = _store.list_ids()
     return ListDeliberationsResponse(
         deliberation_ids=ids,
@@ -674,11 +686,9 @@ async def list_deliberations():
 
 
 @app.get("/deliberations/{deliberation_id}/exists")
+@require_store
 async def deliberation_exists(deliberation_id: str):
     """Check if a saved deliberation exists."""
-    if not _store:
-        raise HTTPException(status_code=503, detail="Store not initialized")
-
     exists = _store.exists(deliberation_id)
     return {"id": deliberation_id, "exists": exists}
 

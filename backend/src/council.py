@@ -13,7 +13,7 @@ from datetime import datetime
 from typing import Any
 from uuid import uuid4
 
-from .config import CouncilConfig, CouncilMember, DegradationConfig
+from .config import CouncilConfig, CouncilMember, DegradationConfig, Temperature
 from .gateway import GatewayError, InferenceGateway, InferenceResponse, ModelUnavailableError
 
 
@@ -26,6 +26,22 @@ class Perspective:
     character: str
     content: str
     timestamp: datetime = field(default_factory=datetime.now)
+
+
+def format_perspectives_for_prompt(
+    perspectives: list[Perspective],
+    include_character: bool = True
+) -> str:
+    """Format perspectives for LLM prompt consumption."""
+    if include_character:
+        return "\n\n".join(
+            f"### {p.member_id} ({p.character})\n{p.content}"
+            for p in perspectives
+        )
+    return "\n\n".join(
+        f"### {p.member_id}\n{p.content}"
+        for p in perspectives
+    )
 
 
 @dataclass
@@ -363,7 +379,7 @@ Rank the responses from best to worst and explain your reasoning briefly for eac
             response = await self.gateway.complete(
                 model=reviewer.model,
                 messages=messages,
-                temperature=0.3,  # Lower temperature for more consistent ranking
+                temperature=Temperature.ANALYSIS,
             )
 
             # Parse rankings from response (simplified - would need more robust parsing)
@@ -422,9 +438,7 @@ Rank the responses from best to worst and explain your reasoning briefly for eac
             chairman_model = self.config.chairman.model
 
         # Prepare perspectives summary
-        perspectives_text = "\n\n".join(
-            f"### {p.member_id} ({p.character})\n{p.content}" for p in perspectives
-        )
+        perspectives_text = format_perspectives_for_prompt(perspectives)
 
         # Prepare disagreements summary
         disagreements_text = ""
@@ -485,7 +499,7 @@ Please provide your synthesis.""",
                 response = await self.gateway.complete(
                     model=fallback_model,
                     messages=messages,
-                    temperature=0.3,
+                    temperature=Temperature.ANALYSIS,
                 )
                 synthesis = Synthesis(
                     content=f"[Synthesized by fallback model: {fallback_model}]\n\n{response.content}",

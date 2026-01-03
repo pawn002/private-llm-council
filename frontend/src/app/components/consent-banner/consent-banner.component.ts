@@ -6,6 +6,7 @@ import {
   effect,
   ElementRef,
   Renderer2,
+  OnDestroy,
 } from '@angular/core';
 import { PrivacyStatus } from '../../models';
 
@@ -15,7 +16,9 @@ import { PrivacyStatus } from '../../models';
   templateUrl: './consent-banner.component.html',
   styleUrls: ['./consent-banner.component.scss'],
 })
-export class ConsentBannerComponent {
+export class ConsentBannerComponent implements OnDestroy {
+  private resizeObserver?: ResizeObserver;
+
   // Signal-based inputs
   readonly status = input<PrivacyStatus | null>(null);
   readonly loading = input(false);
@@ -58,27 +61,62 @@ export class ConsentBannerComponent {
     private elementRef: ElementRef,
     private renderer: Renderer2
   ) {
-    // Update banner height CSS variable whenever status or loading changes
+    // Setup ResizeObserver after view init whenever status or loading changes
     effect(() => {
       // Track dependencies
       this.status();
       this.loading();
 
-      // Update height after DOM settles
-      setTimeout(() => this.updateBannerHeight(), 0);
+      // Trigger ResizeObserver setup after dependencies change
+      this.setupResizeObserver();
     });
+  }
+
+  ngOnDestroy(): void {
+    // Clean up observer on component destruction
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+    }
+  }
+
+  private setupResizeObserver(): void {
+    // Clean up existing observer
+    if (this.resizeObserver) {
+      this.resizeObserver.disconnect();
+    }
+
+    // Wait for DOM to settle, then setup observer
+    setTimeout(() => {
+      const element = this.elementRef.nativeElement as HTMLElement;
+      const banner = element.querySelector('.consent-banner') as HTMLElement;
+
+      if (banner) {
+        // Create ResizeObserver to watch banner height changes
+        this.resizeObserver = new ResizeObserver(() => {
+          this.updateBannerHeight();
+        });
+
+        this.resizeObserver.observe(banner);
+
+        // Trigger initial measurement
+        this.updateBannerHeight();
+      }
+    }, 0);
   }
 
   private updateBannerHeight(): void {
     const element = this.elementRef.nativeElement as HTMLElement;
     const banner = element.querySelector('.consent-banner') as HTMLElement;
     if (banner) {
-      const height = banner.offsetHeight;
-      this.renderer.setStyle(
-        document.documentElement,
-        '--banner-height',
-        `${height}px`
-      );
+      // Use requestAnimationFrame to ensure measurement happens after reflow
+      requestAnimationFrame(() => {
+        const height = banner.offsetHeight;
+        this.renderer.setStyle(
+          document.documentElement,
+          '--banner-height',
+          `${height}px`
+        );
+      });
     }
   }
 

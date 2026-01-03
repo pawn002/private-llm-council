@@ -220,6 +220,74 @@ class ListDeliberationsResponse(BaseModel):
     count: int
 
 
+def build_deliberation_response_dict(deliberation: Deliberation) -> dict:
+    """
+    Build a response dictionary from a Deliberation object.
+
+    This helper ensures consistent response structure across all endpoints
+    (POST /deliberate, SSE /deliberate/stream, POST /deliberations/load).
+    """
+    # Build confidence dict if available
+    confidence = None
+    if deliberation.synthesis.confidence:
+        confidence = {
+            "overall": deliberation.synthesis.confidence.overall,
+            "consensus_strength": deliberation.synthesis.confidence.consensus_strength,
+            "dissent_strength": deliberation.synthesis.confidence.dissent_strength,
+            "reasoning": deliberation.synthesis.confidence.reasoning,
+        }
+
+    # Build disagreements with optional severity/implications
+    disagreements = []
+    for d in deliberation.disagreements:
+        disagreement_dict = {
+            "topic": d.topic,
+            "description": d.description,
+            "positions": d.positions,
+        }
+        if hasattr(d, "severity"):
+            disagreement_dict["severity"] = (
+                d.severity.value if hasattr(d.severity, "value") else str(d.severity)
+            )
+        if hasattr(d, "implications"):
+            disagreement_dict["implications"] = d.implications
+        disagreements.append(disagreement_dict)
+
+    return {
+        "id": deliberation.id,
+        "question": deliberation.question,
+        "synthesis": {
+            "content": deliberation.synthesis.content,
+            "consensus_points": deliberation.synthesis.consensus_points,
+            "divisions": deliberation.synthesis.divisions,
+            "unique_insights": deliberation.synthesis.unique_insights,
+            "confidence": confidence,
+        },
+        "confidence": None,  # Deprecated - confidence now inside synthesis
+        "perspectives": [
+            {
+                "member_id": p.member_id,
+                "model": p.model,
+                "character": p.character,
+                "content": p.content,
+                "timestamp": p.timestamp.isoformat(),
+            }
+            for p in deliberation.perspectives
+        ],
+        "disagreements": disagreements,
+        "minority_reports": [
+            {
+                "member_id": mr.member_id,
+                "position": mr.position,
+                "rationale": mr.rationale,
+            }
+            for mr in deliberation.minority_reports
+        ],
+        "timestamp": deliberation.timestamp.isoformat(),
+        "session_id": deliberation.session_id,
+    }
+
+
 # Endpoints
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
@@ -291,64 +359,7 @@ async def deliberate(request: DeliberationRequest):
 
         logger.info(f"Deliberation complete: {deliberation.id}")
 
-        # Build confidence response if available
-        confidence = None
-        if deliberation.synthesis.confidence:
-            confidence = ConfidenceResponse(
-                overall=deliberation.synthesis.confidence.overall,
-                consensus_strength=deliberation.synthesis.confidence.consensus_strength,
-                dissent_strength=deliberation.synthesis.confidence.dissent_strength,
-                reasoning=deliberation.synthesis.confidence.reasoning,
-            )
-
-        # Build disagreements with severity if available
-        disagreement_list = []
-        for d in deliberation.disagreements:
-            disagreement_dict = {
-                "topic": d.topic,
-                "description": d.description,
-                "positions": d.positions,
-            }
-            # Check if this is an AnalyzedDisagreement with severity
-            if hasattr(d, "severity"):
-                disagreement_dict["severity"] = d.severity.value if hasattr(d.severity, "value") else str(d.severity)
-            if hasattr(d, "implications"):
-                disagreement_dict["implications"] = d.implications
-            disagreement_list.append(disagreement_dict)
-
-        return DeliberationResponse(
-            id=deliberation.id,
-            question=deliberation.question,
-            synthesis={
-                "content": deliberation.synthesis.content,
-                "consensus_points": deliberation.synthesis.consensus_points,
-                "divisions": deliberation.synthesis.divisions,
-                "unique_insights": deliberation.synthesis.unique_insights,
-                "confidence": confidence.dict() if confidence else None,
-            },
-            confidence=None,  # Deprecated - confidence now inside synthesis
-            perspectives=[
-                {
-                    "member_id": p.member_id,
-                    "model": p.model,
-                    "character": p.character,
-                    "content": p.content,
-                    "timestamp": p.timestamp.isoformat(),
-                }
-                for p in deliberation.perspectives
-            ],
-            disagreements=disagreement_list,
-            minority_reports=[
-                {
-                    "member_id": mr.member_id,
-                    "position": mr.position,
-                    "rationale": mr.rationale,
-                }
-                for mr in deliberation.minority_reports
-            ],
-            timestamp=deliberation.timestamp.isoformat(),
-            session_id=deliberation.session_id,
-        )
+        return DeliberationResponse(**build_deliberation_response_dict(deliberation))
 
     except ValueError as e:
         error_msg = str(e)
@@ -474,68 +485,8 @@ async def deliberate_stream(question: str):
             _session_deliberations[deliberation.id] = deliberation
             logger.info(f"Streaming deliberation complete: {deliberation.id}")
 
-            # Build confidence response if available
-            confidence = None
-            if deliberation.synthesis.confidence:
-                confidence = {
-                    "overall": deliberation.synthesis.confidence.overall,
-                    "consensus_strength": deliberation.synthesis.confidence.consensus_strength,
-                    "dissent_strength": deliberation.synthesis.confidence.dissent_strength,
-                    "reasoning": deliberation.synthesis.confidence.reasoning,
-                }
-
-            # Build disagreements with severity if available
-            disagreement_list = []
-            for d in deliberation.disagreements:
-                disagreement_dict = {
-                    "topic": d.topic,
-                    "description": d.description,
-                    "positions": d.positions,
-                }
-                # Check if this is an AnalyzedDisagreement with severity
-                if hasattr(d, "severity"):
-                    disagreement_dict["severity"] = d.severity.value if hasattr(d.severity, "value") else str(d.severity)
-                if hasattr(d, "implications"):
-                    disagreement_dict["implications"] = d.implications
-                disagreement_list.append(disagreement_dict)
-
-            # Build deliberation response (matching POST endpoint structure)
-            deliberation_response = {
-                "id": deliberation.id,
-                "question": deliberation.question,
-                "synthesis": {
-                    "content": deliberation.synthesis.content,
-                    "consensus_points": deliberation.synthesis.consensus_points,
-                    "divisions": deliberation.synthesis.divisions,
-                    "unique_insights": deliberation.synthesis.unique_insights,
-                    "confidence": confidence,
-                },
-                "confidence": None,  # Deprecated - confidence now inside synthesis
-                "perspectives": [
-                    {
-                        "member_id": p.member_id,
-                        "model": p.model,
-                        "character": p.character,
-                        "content": p.content,
-                        "timestamp": p.timestamp.isoformat(),
-                    }
-                    for p in deliberation.perspectives
-                ],
-                "disagreements": disagreement_list,
-                "minority_reports": [
-                    {
-                        "member_id": mr.member_id,
-                        "position": mr.position,
-                        "rationale": mr.rationale,
-                    }
-                    for mr in deliberation.minority_reports
-                ],
-                "timestamp": deliberation.timestamp.isoformat(),
-                "session_id": deliberation.session_id,
-            }
-
             # Send completion event
-            yield sse_event("complete", {"deliberation": deliberation_response})
+            yield sse_event("complete", {"deliberation": build_deliberation_response_dict(deliberation)})
 
         except ValueError as e:
             error_msg = str(e)
@@ -664,56 +615,7 @@ async def load_deliberation(request: LoadDeliberationRequest):
 
         logger.info(f"Deliberation loaded: {request.deliberation_id}")
 
-        # Build response (same as deliberate endpoint)
-        confidence = None
-        if deliberation.synthesis.confidence:
-            confidence = ConfidenceResponse(
-                overall=deliberation.synthesis.confidence.overall,
-                consensus_strength=deliberation.synthesis.confidence.consensus_strength,
-                dissent_strength=deliberation.synthesis.confidence.dissent_strength,
-                reasoning=deliberation.synthesis.confidence.reasoning,
-            )
-
-        return DeliberationResponse(
-            id=deliberation.id,
-            question=deliberation.question,
-            synthesis={
-                "content": deliberation.synthesis.content,
-                "consensus_points": deliberation.synthesis.consensus_points,
-                "divisions": deliberation.synthesis.divisions,
-                "unique_insights": deliberation.synthesis.unique_insights,
-                "confidence": confidence.dict() if confidence else None,
-            },
-            confidence=None,  # Deprecated - confidence now inside synthesis
-            perspectives=[
-                {
-                    "member_id": p.member_id,
-                    "model": p.model,
-                    "character": p.character,
-                    "content": p.content,
-                    "timestamp": p.timestamp.isoformat(),
-                }
-                for p in deliberation.perspectives
-            ],
-            disagreements=[
-                {
-                    "topic": d.topic,
-                    "description": d.description,
-                    "positions": d.positions,
-                }
-                for d in deliberation.disagreements
-            ],
-            minority_reports=[
-                {
-                    "member_id": mr.member_id,
-                    "position": mr.position,
-                    "rationale": mr.rationale,
-                }
-                for mr in deliberation.minority_reports
-            ],
-            timestamp=deliberation.timestamp.isoformat(),
-            session_id=deliberation.session_id,
-        )
+        return DeliberationResponse(**build_deliberation_response_dict(deliberation))
 
     except DecryptionError:
         raise HTTPException(

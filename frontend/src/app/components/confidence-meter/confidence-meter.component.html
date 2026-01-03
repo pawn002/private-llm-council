@@ -2,8 +2,7 @@
   <span class="meter-label">{{ label() }}</span>
   <div class="meter-track">
     <div
-      class="meter-fill"
-      [class]="colorClass()"
+      class="meter-fill {{ colorClass() }}"
       [style.width.%]="percentage()"
     ></div>
   </div>

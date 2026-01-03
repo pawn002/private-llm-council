@@ -1,5 +1,5 @@
 @if (items().length > 0) {
-  <div class="card" [class]="cardClass()">
+  <div class="card {{ cardClass() }}">
     <h3>
       @if (icon()) {
         <span>{{ icon() }}</span>
@@ -9,7 +9,7 @@
     <ul>
       @for (item of items(); track item) {
         <li>
-          <span class="bullet" [class]="bulletColor()">•</span>
+          <span class="bullet {{ bulletColor() }}">•</span>
           {{ item }}
         </li>
       }

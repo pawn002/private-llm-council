@@ -1,4 +1,12 @@
-import { Component, input, output, computed } from '@angular/core';
+import {
+  Component,
+  input,
+  output,
+  computed,
+  effect,
+  ElementRef,
+  Renderer2,
+} from '@angular/core';
 import { PrivacyStatus } from '../../models';
 
 @Component({
@@ -45,6 +53,34 @@ export class ConsentBannerComponent {
         return '?';
     }
   });
+
+  constructor(
+    private elementRef: ElementRef,
+    private renderer: Renderer2
+  ) {
+    // Update banner height CSS variable whenever status or loading changes
+    effect(() => {
+      // Track dependencies
+      this.status();
+      this.loading();
+
+      // Update height after DOM settles
+      setTimeout(() => this.updateBannerHeight(), 0);
+    });
+  }
+
+  private updateBannerHeight(): void {
+    const element = this.elementRef.nativeElement as HTMLElement;
+    const banner = element.querySelector('.consent-banner') as HTMLElement;
+    if (banner) {
+      const height = banner.offsetHeight;
+      this.renderer.setStyle(
+        document.documentElement,
+        '--banner-height',
+        `${height}px`
+      );
+    }
+  }
 
   onDismiss(): void {
     this.dismiss.emit();

@@ -9,7 +9,7 @@ main {
   transition: padding-top 0.3s;
 
   &.with-banner {
-    padding-top: 8rem;
+    padding-top: calc(var(--banner-height, 8rem) + 2rem);
   }
 }
 

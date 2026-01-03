@@ -7,6 +7,7 @@ Your deliberations belong to you.
 
 import logging
 import os
+import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -430,21 +431,40 @@ async def deliberate_stream(question: str):
                 )
             )
 
-            # Stream status updates as they arrive
-            while not deliberation_task.done():
-                try:
-                    status = await asyncio.wait_for(status_queue.get(), timeout=0.1)
+            try:
+                # Stream status updates as they arrive with heartbeat
+                last_send_time = time.time()
+                heartbeat_interval = 30  # Send heartbeat every 30 seconds
+
+                while not deliberation_task.done():
+                    try:
+                        status = await asyncio.wait_for(status_queue.get(), timeout=0.1)
+                        yield sse_event("status", {"message": status})
+                        last_send_time = time.time()
+                    except asyncio.TimeoutError:
+                        # Send heartbeat if idle for too long to prevent timeout
+                        if time.time() - last_send_time > heartbeat_interval:
+                            yield ": heartbeat\n\n"  # SSE comment format
+                            last_send_time = time.time()
+                        continue
+
+                # Drain remaining messages
+                while not status_queue.empty():
+                    status = status_queue.get_nowait()
                     yield sse_event("status", {"message": status})
-                except asyncio.TimeoutError:
-                    continue
 
-            # Drain remaining messages
-            while not status_queue.empty():
-                status = status_queue.get_nowait()
-                yield sse_event("status", {"message": status})
+                # Get result
+                deliberation = await deliberation_task
 
-            # Get result
-            deliberation = await deliberation_task
+            except asyncio.CancelledError:
+                # Client disconnected - cancel the deliberation task
+                logger.info("Client disconnected, cancelling deliberation")
+                deliberation_task.cancel()
+                try:
+                    await deliberation_task
+                except asyncio.CancelledError:
+                    logger.info("Deliberation task cancelled successfully")
+                raise
 
             # Cache in session (same as POST endpoint)
             _session_deliberations[deliberation.id] = deliberation

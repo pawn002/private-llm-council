@@ -58,6 +58,37 @@
           ></div>
         }
       </div>
+
+      <!-- Elapsed Time Display -->
+      <div class="elapsed-time">
+        <small class="text-muted">
+          Elapsed: {{ elapsedTime() }}
+          @if (state().elapsedSeconds > 60) {
+            <span class="warning-hint">
+              • Long deliberation in progress
+            </span>
+          }
+          @if (state().elapsedSeconds > 300) {
+            <span class="warning-hint text-warning">
+              • Consider canceling and trying a shorter query
+            </span>
+          }
+        </small>
+      </div>
+
+      <!-- Cancel Button -->
+      <div class="cancel-actions">
+        <button
+          type="button"
+          class="btn btn-outline-danger btn-sm"
+          (click)="onCancel()"
+          title="Cancel this deliberation">
+          Cancel Deliberation
+        </button>
+        <small class="text-muted d-block mt-1">
+          You can cancel and try a shorter query
+        </small>
+      </div>
     </div>
   </div>
 }

@@ -42,4 +42,8 @@ ENV SOVEREIGN_COUNCIL_DATA_DIR=/app/data
 EXPOSE 8000
 
 # Run with uvicorn
-CMD ["python", "-m", "uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python", "-m", "uvicorn", "src.main:app", \
+     "--host", "0.0.0.0", \
+     "--port", "8000", \
+     "--timeout-keep-alive", "1800", \
+     "--timeout-graceful-shutdown", "30"]

@@ -8,6 +8,8 @@ export interface DeliberationState {
   statusMessage: string;
   deliberation: Deliberation | null;
   error: string | null;
+  startTime: number | null;
+  elapsedSeconds: number;
 }
 
 const initialState: DeliberationState = {
@@ -15,6 +17,8 @@ const initialState: DeliberationState = {
   statusMessage: '',
   deliberation: null,
   error: null,
+  startTime: null,
+  elapsedSeconds: 0,
 };
 
 @Injectable({
@@ -23,6 +27,7 @@ const initialState: DeliberationState = {
 export class DeliberationService {
   private stateSubject = new BehaviorSubject<DeliberationState>(initialState);
   state$ = this.stateSubject.asObservable();
+  private timerInterval: any = null;
 
   constructor(private api: ApiService) {}
 
@@ -58,7 +63,12 @@ export class DeliberationService {
       statusMessage: 'Gathering perspectives from council members...',
       deliberation: null,
       error: null,
+      startTime: Date.now(),
+      elapsedSeconds: 0,
     });
+
+    // Start timer
+    this.startTimer();
 
     // Try streaming first
     this.api
@@ -78,6 +88,7 @@ export class DeliberationService {
       })
       .subscribe({
         next: (deliberation) => {
+          this.stopTimer();
           this.updateState({
             phase: 'complete',
             statusMessage: 'Deliberation complete',
@@ -86,6 +97,7 @@ export class DeliberationService {
           });
         },
         error: (err) => {
+          this.stopTimer();
           this.setError(err.message || 'Deliberation failed');
         },
       });
@@ -159,5 +171,52 @@ export class DeliberationService {
 
   reset(): void {
     this.stateSubject.next(initialState);
+  }
+
+  cancel(): void {
+    // Stop timer
+    this.stopTimer();
+
+    // Cancel API stream
+    this.api.cancelStream();
+
+    // Reset state
+    this.updateState({
+      phase: 'idle',
+      statusMessage: 'Deliberation canceled',
+      deliberation: null,
+      error: null,
+      startTime: null,
+      elapsedSeconds: 0,
+    });
+
+    // Clear message after 3 seconds
+    setTimeout(() => {
+      if (this.stateSubject.value.statusMessage === 'Deliberation canceled') {
+        this.updateState({ statusMessage: '' });
+      }
+    }, 3000);
+  }
+
+  private startTimer(): void {
+    this.stopTimer(); // Clear any existing timer
+
+    this.timerInterval = setInterval(() => {
+      const current = this.stateSubject.value;
+      if (current.startTime) {
+        const elapsed = Math.floor((Date.now() - current.startTime) / 1000);
+        this.stateSubject.next({
+          ...current,
+          elapsedSeconds: elapsed
+        });
+      }
+    }, 1000); // Update every second
+  }
+
+  private stopTimer(): void {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
   }
 }

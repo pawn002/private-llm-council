@@ -61,7 +61,18 @@ class InferenceGateway:
         """Async context manager entry."""
         self._client = httpx.AsyncClient(
             base_url=self.config.url.rstrip("/v1"),  # Remove /v1 suffix if present
-            timeout=httpx.Timeout(self.config.timeout_seconds),
+            timeout=httpx.Timeout(
+                timeout=self.config.timeout_seconds,  # 120s default
+                connect=10.0,      # Fast connection timeout
+                read=1800.0,       # Allow up to 30 minutes for model inference
+                write=120.0,       # Reasonable write timeout
+                pool=10.0,         # Connection pool timeout
+            ),
+            limits=httpx.Limits(
+                max_keepalive_connections=10,
+                max_connections=100,
+                keepalive_expiry=30.0,  # Keep idle connections for 30s
+            ),
         )
         return self
 

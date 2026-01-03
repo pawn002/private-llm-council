@@ -14,6 +14,8 @@ const API_BASE = '/api';
   providedIn: 'root',
 })
 export class ApiService {
+  private currentEventSource: EventSource | null = null;
+
   constructor(private http: HttpClient) {}
 
   private handleError(error: HttpErrorResponse): Observable<never> {
@@ -58,6 +60,9 @@ export class ApiService {
         `${API_BASE}/deliberate/stream?question=${encodeURIComponent(question)}`
       );
 
+      // Store reference for cancellation
+      this.currentEventSource = eventSource;
+
       eventSource.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
@@ -65,10 +70,12 @@ export class ApiService {
           if (data.type === 'status') {
             onStatus(data.message);
           } else if (data.type === 'complete') {
+            this.currentEventSource = null;
             eventSource.close();
             observer.next(data.deliberation);
             observer.complete();
           } else if (data.type === 'error') {
+            this.currentEventSource = null;
             eventSource.close();
             observer.error(new Error(data.message));
           }
@@ -78,6 +85,7 @@ export class ApiService {
       };
 
       eventSource.onerror = () => {
+        this.currentEventSource = null;
         eventSource.close();
         // Fall back to regular POST
         this.deliberate(question).subscribe({
@@ -90,9 +98,18 @@ export class ApiService {
       };
 
       return () => {
+        this.currentEventSource = null;
         eventSource.close();
       };
     });
+  }
+
+  // Cancel current stream
+  cancelStream(): void {
+    if (this.currentEventSource) {
+      this.currentEventSource.close();
+      this.currentEventSource = null;
+    }
   }
 
   // Persistence endpoints

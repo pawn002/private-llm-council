@@ -127,3 +127,46 @@
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
 }
+
+.elapsed-time {
+  margin-top: 1rem;
+  text-align: center;
+
+  .text-muted {
+    color: #9ca3af;
+    font-size: 0.875rem;
+  }
+
+  .warning-hint {
+    margin-left: 0.5rem;
+    font-size: 0.875rem;
+    color: #fbbf24;
+
+    &.text-warning {
+      color: #f59e0b;
+      font-weight: 500;
+    }
+  }
+}
+
+.cancel-actions {
+  margin-top: 1.5rem;
+  text-align: center;
+
+  .btn {
+    min-width: 150px;
+  }
+
+  .mt-1 {
+    margin-top: 0.25rem;
+  }
+
+  .d-block {
+    display: block;
+  }
+
+  .text-muted {
+    color: #9ca3af;
+    font-size: 0.875rem;
+  }
+}

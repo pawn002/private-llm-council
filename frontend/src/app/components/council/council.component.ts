@@ -35,6 +35,13 @@ export class CouncilComponent {
     return ['gathering', 'reviewing', 'synthesizing', 'analyzing'].includes(phase);
   });
 
+  readonly elapsedTime = computed(() => {
+    const seconds = this.state().elapsedSeconds;
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}m ${remainingSeconds}s`;
+  });
+
   readonly phaseMessages: Record<DeliberationPhase, string> = {
     idle: '',
     gathering: 'Gathering perspectives from council members...',
@@ -79,6 +86,13 @@ export class CouncilComponent {
 
   onReset(): void {
     this.deliberationService.reset();
+  }
+
+  onCancel(): void {
+    if (confirm('Are you sure you want to cancel this deliberation?')) {
+      this.deliberationService.cancel();
+      this.question.set(''); // Clear question input
+    }
   }
 
   async handleSave(passphrase: string): Promise<void> {

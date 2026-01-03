@@ -6,11 +6,6 @@
 
 main {
   padding: 2rem 1rem 4rem;
-  transition: padding-top 0.3s;
-
-  &.with-banner {
-    padding-top: calc(var(--banner-height, 8rem) + 2rem);
-  }
 }
 
 .container {

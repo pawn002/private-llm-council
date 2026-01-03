@@ -65,6 +65,48 @@ After making frontend changes:
 
 ---
 
+## 🔄 GitHub Issue Workflow
+
+### Issue Closure Policy
+
+**IMPORTANT**: Do NOT close issues immediately after implementing a fix.
+
+**Correct Workflow**:
+1. Implement the fix
+2. Rebuild and deploy containers
+3. Test the fix locally (curl, browser, etc.)
+4. Commit and push changes
+5. Comment on the issue with:
+   - Commit hash
+   - Root cause explanation
+   - Solution implemented
+   - Testing performed
+6. **WAIT for user verification** before closing
+7. Only close the issue after user confirms the fix works
+
+**Why This Matters**:
+- User may have different testing scenarios
+- Fix may work in development but not in user's environment
+- User may identify edge cases or additional requirements
+- Premature closure creates confusion and requires reopening
+
+### Issue Comment Template
+
+When posting fix details:
+```
+Fixed in commit [hash].
+
+**Root Cause**: [explanation]
+
+**Solution**: [what was changed and why]
+
+**Testing**: [what tests were performed]
+
+Please verify this resolves the issue in your environment.
+```
+
+---
+
 ## 🧪 Testing Workflow
 
 ### 1. Test API Endpoints Directly (Before Browser Testing)
@@ -333,6 +375,8 @@ graph TD
 - [ ] No console errors
 - [ ] UI displays data correctly
 - [ ] Both POST and SSE endpoints work (if applicable)
+- [ ] Issue commented with fix details (if applicable)
+- [ ] Waiting for user verification before closing issue
 
 ---
 

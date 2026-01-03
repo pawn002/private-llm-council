@@ -576,13 +576,29 @@ async def list_models():
 @app.get("/privacy/status")
 async def privacy_status():
     """Get current privacy mode verification status."""
-    if not _privacy_verification or not _config:
+    if not _privacy_verification or not _config or not _gateway:
         raise HTTPException(status_code=503, detail="System not initialized")
 
+    # Check if Ollama is actually reachable
+    gateway_health = await _gateway.health_check()
+    ollama_reachable = gateway_health.healthy
+
+    # Determine network status booleans
+    network_status_value = _privacy_verification.network_status.value
+    external_reachable = network_status_value == "external_possible"
+    local_only = network_status_value == "local_only"
+
     return {
-        "mode": _config.privacy_mode.value,
+        "mode": {
+            "mode": _config.privacy_mode.value.upper(),
+            "description": _privacy_verification.message,
+        },
         "verified": _privacy_verification.verified,
-        "network_status": _privacy_verification.network_status.value,
+        "network_status": {
+            "external_reachable": external_reachable,
+            "ollama_reachable": ollama_reachable,
+            "local_only": local_only,
+        },
         "message": _privacy_verification.message,
         "warnings": _privacy_verification.warnings,
     }

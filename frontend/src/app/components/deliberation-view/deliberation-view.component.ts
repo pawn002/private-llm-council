@@ -25,8 +25,11 @@ export class DeliberationViewComponent {
   // Computed signals
   readonly formattedTimestamp = computed(() => {
     return new Date(this.deliberation().timestamp).toLocaleString(undefined, {
-      dateStyle: 'medium',
-      timeStyle: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
       timeZoneName: 'short',
     });
   });

@@ -1,4 +1,4 @@
-@if (items().length > 0) {
+@if (safeItems().length > 0) {
   <div class="card {{ cardClass() }}">
     <h3>
       @if (icon()) {
@@ -7,7 +7,7 @@
       {{ title() }}
     </h3>
     <ul>
-      @for (item of items(); track item) {
+      @for (item of safeItems(); track item) {
         <li>
           <span class="bullet {{ bulletColor() }}">•</span>
           {{ item }}

@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, computed } from '@angular/core';
 import { Synthesis, Disagreement, MinorityReport } from '../../models';
 import { ConfidenceMeterComponent } from '../confidence-meter/confidence-meter.component';
 import { ListSectionComponent } from '../list-section/list-section.component';
@@ -13,8 +13,12 @@ import { ListSectionComponent } from '../list-section/list-section.component';
 export class SynthesisPanelComponent {
   // Signal-based inputs
   readonly synthesis = input.required<Synthesis>();
-  readonly disagreements = input<Disagreement[]>([]);
-  readonly minorityReports = input<MinorityReport[]>([]);
+  readonly disagreements = input<Disagreement[] | null>([]);
+  readonly minorityReports = input<MinorityReport[] | null>([]);
+
+  // Safe accessors that guarantee arrays (handles null/undefined edge cases)
+  readonly safeDisagreements = computed(() => this.disagreements() ?? []);
+  readonly safeMinorityReports = computed(() => this.minorityReports() ?? []);
 
   getSeverityClass(severity?: string): string {
     switch (severity) {
@@ -27,7 +31,8 @@ export class SynthesisPanelComponent {
     }
   }
 
-  getPositionEntries(positions: Record<string, string>): Array<{ key: string; value: string }> {
+  getPositionEntries(positions: Record<string, string> | null | undefined): Array<{ key: string; value: string }> {
+    if (!positions) return [];
     return Object.entries(positions).map(([key, value]) => ({ key, value }));
   }
 }

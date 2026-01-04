@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, computed } from '@angular/core';
 
 @Component({
   selector: 'app-list-section',
@@ -8,8 +8,11 @@ import { Component, input } from '@angular/core';
 })
 export class ListSectionComponent {
   readonly title = input.required<string>();
-  readonly items = input.required<string[]>();
+  readonly items = input<string[] | null>([]);
   readonly icon = input<string>('');
   readonly cardClass = input<string>('');
   readonly bulletColor = input<string>('');
+
+  // Safe accessor that guarantees an array (handles null/undefined edge cases)
+  readonly safeItems = computed(() => this.items() ?? []);
 }

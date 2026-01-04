@@ -50,19 +50,19 @@
   />
 
   <!-- Disagreements -->
-  @if (disagreements().length > 0) {
+  @if (safeDisagreements().length > 0) {
     <div class="card disagreements-card">
       <h3><span>🔍</span> Detailed Disagreements</h3>
       <div class="disagreement-list">
-        @for (d of disagreements(); track d.topic) {
+        @for (d of safeDisagreements(); track d.topic) {
           <div class="disagreement-item">
             <div class="disagreement-header">
-              <h4>{{ d.topic }}</h4>
+              <h4>{{ d.topic || 'Unnamed disagreement' }}</h4>
               <span class="severity-badge" [class]="getSeverityClass(d.severity)">
                 {{ d.severity || 'moderate' }}
               </span>
             </div>
-            <p class="disagreement-desc">{{ d.description }}</p>
+            <p class="disagreement-desc">{{ d.description || 'No description available' }}</p>
             <div class="positions">
               @for (pos of getPositionEntries(d.positions); track pos.key) {
                 <div class="position">
@@ -78,11 +78,11 @@
   }
 
   <!-- Minority Reports -->
-  @if (minorityReports().length > 0) {
+  @if (safeMinorityReports().length > 0) {
     <div class="card minority-card">
       <h3><span>📋</span> Minority Reports</h3>
       <div class="minority-list">
-        @for (report of minorityReports(); track report.member_id) {
+        @for (report of safeMinorityReports(); track report.member_id) {
           <div class="minority-item">
             <div class="minority-header">
               <span class="minority-member">{{ report.member_id }}</span>

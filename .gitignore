@@ -71,3 +71,6 @@ Thumbs.db
 credentials.json
 secrets.yaml
 
+# Claude local settings
+.claude/settings.local.json
+

@@ -95,6 +95,11 @@ export interface HealthStatus {
   privacy_mode: string;
 }
 
+export interface GatewayBusyStatus {
+  is_busy: boolean;
+  message: string;
+}
+
 export type DeliberationPhase =
   | 'idle'
   | 'gathering'

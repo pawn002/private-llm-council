@@ -7,7 +7,8 @@ All inference happens locally - your queries never leave your machine.
 
 import asyncio
 from dataclasses import dataclass
-from typing import AsyncIterator
+from datetime import datetime, timedelta, timezone
+from typing import AsyncIterator, Optional
 
 import httpx
 
@@ -295,3 +296,65 @@ class InferenceGateway:
         """
         health = await self.health_check()
         return health.available_models
+
+    async def is_busy(self, since: Optional[datetime] = None) -> bool:
+        """
+        Check if Ollama is currently processing models from other requests.
+
+        Queries the /api/ps endpoint to see if any models are loaded.
+        If 'since' timestamp is provided, only considers models that were
+        loaded BEFORE that timestamp (i.e., from previous/other requests).
+
+        Args:
+            since: Optional timestamp. If provided, only count models loaded
+                   before this time as "busy" indicators. Models loaded after
+                   this time are assumed to be from the current operation.
+
+        Returns:
+            True if models from other requests are loaded, False otherwise.
+        """
+        try:
+            response = await self.client.get("/api/ps")
+            if response.status_code == 200:
+                data = response.json()
+                models = data.get("models", [])
+
+                if not since:
+                    # No timestamp filter - any loaded model means busy
+                    return len(models) > 0
+
+                # Ollama's default keep-alive is 5 minutes
+                # We'll use this to estimate when a model was loaded
+                keep_alive = timedelta(minutes=5)
+
+                for model in models:
+                    expires_at_str = model.get("expires_at")
+                    if not expires_at_str:
+                        continue
+
+                    try:
+                        # Parse ISO 8601 timestamp
+                        expires_at = datetime.fromisoformat(
+                            expires_at_str.replace("Z", "+00:00")
+                        )
+
+                        # Estimate when model was loaded
+                        # loaded_at ≈ expires_at - keep_alive
+                        loaded_at = expires_at - keep_alive
+
+                        # If model was loaded before 'since', it's from another request
+                        if loaded_at < since:
+                            return True
+
+                    except (ValueError, TypeError):
+                        # If we can't parse timestamp, be conservative and assume busy
+                        continue
+
+                # All models were loaded after 'since' or no valid timestamps
+                return False
+
+        except httpx.RequestError:
+            # If we can't connect, assume not busy (fail gracefully)
+            return False
+
+        return False

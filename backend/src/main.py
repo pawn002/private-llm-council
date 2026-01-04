@@ -9,6 +9,7 @@ import logging
 import os
 import time
 from contextlib import asynccontextmanager
+from datetime import datetime
 from functools import wraps
 from pathlib import Path
 
@@ -220,6 +221,13 @@ class ListDeliberationsResponse(BaseModel):
 
     deliberation_ids: list[str]
     count: int
+
+
+class GatewayBusyResponse(BaseModel):
+    """Gateway busy status response."""
+
+    is_busy: bool
+    message: str
 
 
 # Endpoint guard decorators
@@ -485,6 +493,40 @@ async def list_models():
 
     models = await _gateway.list_models()
     return {"models": models}
+
+
+@app.get("/gateway/busy", response_model=GatewayBusyResponse)
+@require_initialized
+async def gateway_busy_status(since: str | None = None):
+    """
+    Check if the inference gateway is currently busy processing models.
+
+    If 'since' timestamp is provided, only models loaded BEFORE that time
+    are considered as "other requests". Models loaded after 'since' are
+    assumed to be from the current deliberation.
+
+    Args:
+        since: Optional ISO 8601 timestamp (e.g., from deliberation start).
+               If provided, filters out models loaded after this time.
+
+    Returns whether Ollama has models loaded from other/previous requests.
+    """
+    since_dt = None
+    if since:
+        try:
+            since_dt = datetime.fromisoformat(since.replace("Z", "+00:00"))
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid 'since' timestamp format")
+
+    is_busy = await _gateway.is_busy(since=since_dt)
+
+    message = (
+        "Ollama is processing other requests"
+        if is_busy
+        else "Ollama is idle"
+    )
+
+    return GatewayBusyResponse(is_busy=is_busy, message=message)
 
 
 @app.get("/privacy/status")

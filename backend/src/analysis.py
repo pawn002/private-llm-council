@@ -11,8 +11,28 @@ Philosophy: The council understands itself through its own intelligence.
 from dataclasses import dataclass
 from enum import Enum
 
-from .council import Perspective, Critique, Disagreement, MinorityReport
+from .config import Temperature
+from .council import (
+    Perspective,
+    Critique,
+    Disagreement,
+    MinorityReport,
+    format_perspectives_for_prompt,
+)
 from .gateway import InferenceGateway
+
+
+# Utility functions
+def clamp(value: float, min_val: float = 0.0, max_val: float = 1.0) -> float:
+    """Clamp a value to the specified range."""
+    return max(min_val, min(max_val, value))
+
+
+def extract_value(line: str) -> str:
+    """Extract the value after the first colon in a line."""
+    if ":" not in line:
+        return line.strip()
+    return line.split(":", 1)[1].strip()
 
 
 class DisagreementSeverity(str, Enum):
@@ -163,9 +183,7 @@ class DeliberationAnalyzer:
             return []
 
         # Format perspectives for analysis
-        perspectives_text = "\n\n".join(
-            f"### {p.member_id} ({p.character})\n{p.content}" for p in perspectives
-        )
+        perspectives_text = format_perspectives_for_prompt(perspectives)
 
         prompt = DISAGREEMENT_ANALYSIS_PROMPT.format(
             question=question,
@@ -175,7 +193,7 @@ class DeliberationAnalyzer:
         response = await self.gateway.complete(
             model=self.analysis_model,
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.3,  # Lower temperature for more consistent analysis
+            temperature=Temperature.ANALYSIS,
         )
 
         return self._parse_disagreements(response.content, perspectives)
@@ -203,9 +221,7 @@ class DeliberationAnalyzer:
             return []
 
         # Format perspectives
-        perspectives_text = "\n\n".join(
-            f"### {p.member_id}\n{p.content}" for p in perspectives
-        )
+        perspectives_text = format_perspectives_for_prompt(perspectives, include_character=False)
 
         # Format rankings
         rankings_text = "\n".join(
@@ -222,7 +238,7 @@ class DeliberationAnalyzer:
         response = await self.gateway.complete(
             model=self.analysis_model,
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.3,
+            temperature=Temperature.ANALYSIS,
         )
 
         return self._parse_minority_reports(response.content)
@@ -262,7 +278,7 @@ class DeliberationAnalyzer:
         response = await self.gateway.complete(
             model=self.analysis_model,
             messages=[{"role": "user", "content": prompt}],
-            temperature=0.2,
+            temperature=Temperature.CONFIDENCE,
         )
 
         return self._parse_confidence(response.content)
@@ -297,10 +313,10 @@ class DeliberationAnalyzer:
                 current_positions = {}
             elif line.startswith("TOPIC:"):
                 if current_disagreement:
-                    current_disagreement.topic = line.split(":", 1)[1].strip()
+                    current_disagreement.topic = extract_value(line)
             elif line.startswith("SEVERITY:"):
                 if current_disagreement:
-                    severity_str = line.split(":", 1)[1].strip().upper()
+                    severity_str = extract_value(line).upper()
                     try:
                         current_disagreement.severity = DisagreementSeverity(
                             severity_str.lower()
@@ -309,7 +325,7 @@ class DeliberationAnalyzer:
                         current_disagreement.severity = DisagreementSeverity.MODERATE
             elif line.startswith("IMPLICATIONS:"):
                 if current_disagreement:
-                    current_disagreement.implications = line.split(":", 1)[1].strip()
+                    current_disagreement.implications = extract_value(line)
                     current_disagreement.description = current_disagreement.implications
             elif line.startswith("- "):
                 # Position line: "- member_id: position"
@@ -357,18 +373,17 @@ class DeliberationAnalyzer:
                 )
             elif line.startswith("MEMBER:"):
                 if current_report:
-                    current_report.member_id = line.split(":", 1)[1].strip()
+                    current_report.member_id = extract_value(line)
             elif line.startswith("POSITION:"):
                 if current_report:
-                    current_report.position = line.split(":", 1)[1].strip()
+                    current_report.position = extract_value(line)
             elif line.startswith("RATIONALE:"):
                 if current_report:
-                    current_report.rationale = line.split(":", 1)[1].strip()
+                    current_report.rationale = extract_value(line)
             elif line.startswith("KEY_INSIGHT:"):
                 if current_report:
                     # Append key insight to rationale
-                    insight = line.split(":", 1)[1].strip()
-                    current_report.rationale += f" Key insight: {insight}"
+                    current_report.rationale += f" Key insight: {extract_value(line)}"
 
         # Don't forget the last one
         if current_report and current_report.member_id:
@@ -387,24 +402,21 @@ class DeliberationAnalyzer:
             line = line.strip()
             if line.startswith("OVERALL_CONFIDENCE:"):
                 try:
-                    overall = float(line.split(":", 1)[1].strip())
-                    overall = max(0.0, min(1.0, overall))
+                    overall = clamp(float(extract_value(line)))
                 except ValueError:
                     pass
             elif line.startswith("CONSENSUS_STRENGTH:"):
                 try:
-                    consensus = float(line.split(":", 1)[1].strip())
-                    consensus = max(0.0, min(1.0, consensus))
+                    consensus = clamp(float(extract_value(line)))
                 except ValueError:
                     pass
             elif line.startswith("DISSENT_STRENGTH:"):
                 try:
-                    dissent = float(line.split(":", 1)[1].strip())
-                    dissent = max(0.0, min(1.0, dissent))
+                    dissent = clamp(float(extract_value(line)))
                 except ValueError:
                     pass
             elif line.startswith("REASONING:"):
-                reasoning = line.split(":", 1)[1].strip()
+                reasoning = extract_value(line)
 
         return ConfidenceAssessment(
             overall=overall,

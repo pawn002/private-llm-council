@@ -1,0 +1,29 @@
+.council-error {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  padding: 2rem;
+}
+
+.error-card {
+  text-align: center;
+  max-width: 500px;
+  padding: 2rem;
+  border-color: var(--color-error);
+}
+
+.error-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+h2 {
+  color: var(--color-error);
+  margin-bottom: 0.5rem;
+}
+
+p {
+  color: var(--color-text-secondary);
+  margin-bottom: 1.5rem;
+}

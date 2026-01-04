@@ -11,7 +11,7 @@ from typing import AsyncIterator
 
 import httpx
 
-from .config import GatewayConfig
+from .config import GatewayConfig, Temperature
 
 
 class GatewayError(Exception):
@@ -279,7 +279,7 @@ class InferenceGateway:
             await self.complete(
                 model=model,
                 messages=[{"role": "user", "content": prompt}],
-                temperature=0.0,
+                temperature=Temperature.HEALTH_CHECK,
                 max_tokens=1,
             )
             return True

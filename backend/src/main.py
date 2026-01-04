@@ -9,6 +9,7 @@ import logging
 import os
 import time
 from contextlib import asynccontextmanager
+from functools import wraps
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
@@ -22,6 +23,7 @@ from .gateway import InferenceGateway, GatewayError
 from .privacy import verify_privacy_mode, PrivacyViolation, PrivacyVerification
 from .persistence import (
     DeliberationStore,
+    DeliberationSerializer,
     PersistenceError,
     DecryptionError,
     SecureDeletionError,
@@ -163,6 +165,8 @@ class DeliberationResponse(BaseModel):
     perspectives: list[dict]
     disagreements: list[dict]
     minority_reports: list[dict]
+    timestamp: str  # ISO 8601 format timestamp
+    session_id: str
 
 
 class HealthResponse(BaseModel):
@@ -218,13 +222,53 @@ class ListDeliberationsResponse(BaseModel):
     count: int
 
 
+# Endpoint guard decorators
+def require_initialized(func):
+    """Decorator to ensure gateway and config are initialized."""
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        if not _gateway or not _config:
+            raise HTTPException(status_code=503, detail="System not initialized")
+        return await func(*args, **kwargs)
+    return wrapper
+
+
+def require_store(func):
+    """Decorator to ensure persistence store is initialized."""
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        if not _store:
+            raise HTTPException(status_code=503, detail="Store not initialized")
+        return await func(*args, **kwargs)
+    return wrapper
+
+
+async def check_gateway_health() -> tuple[bool, str | None]:
+    """
+    Check if the inference gateway is healthy.
+
+    Returns:
+        Tuple of (is_healthy, error_message).
+        If healthy, error_message is None.
+    """
+    if not _gateway or not _config:
+        return False, "System not initialized"
+
+    health = await _gateway.health_check()
+    if not health.healthy:
+        return False, (
+            f"Inference gateway is unavailable: {health.message}. "
+            f"Please ensure Ollama is running at {_config.gateway.url} "
+            f"and the required models are pulled."
+        )
+    return True, None
+
+
 # Endpoints
 @app.get("/health", response_model=HealthResponse)
+@require_initialized
 async def health_check():
     """Check system health and privacy status."""
-    if not _gateway or not _config:
-        raise HTTPException(status_code=503, detail="System not initialized")
-
     health = await _gateway.health_check()
 
     return HealthResponse(
@@ -249,6 +293,7 @@ async def get_consent_banner():
 
 
 @app.post("/deliberate", response_model=DeliberationResponse)
+@require_initialized
 async def deliberate(request: DeliberationRequest):
     """
     Submit a question for council deliberation.
@@ -256,25 +301,14 @@ async def deliberate(request: DeliberationRequest):
     The question is processed entirely locally.
     Nothing leaves your machine.
     """
-    if not _gateway or not _config:
-        raise HTTPException(status_code=503, detail="System not initialized")
-
     # Log that a deliberation is occurring (but not the content)
     logger.info("Deliberation requested")
 
     try:
         # Check gateway health before attempting deliberation
-        if _gateway:
-            gateway_health = await _gateway.health_check()
-            if not gateway_health.healthy:
-                raise HTTPException(
-                    status_code=503,
-                    detail=(
-                        f"Inference gateway is unavailable: {gateway_health.message}. "
-                        f"Please ensure Ollama is running at {_config.gateway.url} "
-                        f"and the required models are pulled."
-                    )
-                )
+        healthy, error_msg = await check_gateway_health()
+        if not healthy:
+            raise HTTPException(status_code=503, detail=error_msg)
 
         orchestrator = CouncilOrchestrator(
             gateway=_gateway,
@@ -289,62 +323,7 @@ async def deliberate(request: DeliberationRequest):
 
         logger.info(f"Deliberation complete: {deliberation.id}")
 
-        # Build confidence response if available
-        confidence = None
-        if deliberation.synthesis.confidence:
-            confidence = ConfidenceResponse(
-                overall=deliberation.synthesis.confidence.overall,
-                consensus_strength=deliberation.synthesis.confidence.consensus_strength,
-                dissent_strength=deliberation.synthesis.confidence.dissent_strength,
-                reasoning=deliberation.synthesis.confidence.reasoning,
-            )
-
-        # Build disagreements with severity if available
-        disagreement_list = []
-        for d in deliberation.disagreements:
-            disagreement_dict = {
-                "topic": d.topic,
-                "description": d.description,
-                "positions": d.positions,
-            }
-            # Check if this is an AnalyzedDisagreement with severity
-            if hasattr(d, "severity"):
-                disagreement_dict["severity"] = d.severity.value if hasattr(d.severity, "value") else str(d.severity)
-            if hasattr(d, "implications"):
-                disagreement_dict["implications"] = d.implications
-            disagreement_list.append(disagreement_dict)
-
-        return DeliberationResponse(
-            id=deliberation.id,
-            question=deliberation.question,
-            synthesis={
-                "content": deliberation.synthesis.content,
-                "consensus_points": deliberation.synthesis.consensus_points,
-                "divisions": deliberation.synthesis.divisions,
-                "unique_insights": deliberation.synthesis.unique_insights,
-                "confidence": confidence.dict() if confidence else None,
-            },
-            confidence=None,  # Deprecated - confidence now inside synthesis
-            perspectives=[
-                {
-                    "member_id": p.member_id,
-                    "model": p.model,
-                    "character": p.character,
-                    "content": p.content,
-                    "timestamp": p.timestamp.isoformat(),
-                }
-                for p in deliberation.perspectives
-            ],
-            disagreements=disagreement_list,
-            minority_reports=[
-                {
-                    "member_id": mr.member_id,
-                    "position": mr.position,
-                    "rationale": mr.rationale,
-                }
-                for mr in deliberation.minority_reports
-            ],
-        )
+        return DeliberationResponse(**DeliberationSerializer.to_api_response(deliberation))
 
     except ValueError as e:
         error_msg = str(e)
@@ -400,17 +379,10 @@ async def deliberate_stream(question: str):
             logger.info("Streaming deliberation requested")
 
             # Check gateway health before attempting deliberation
-            if _gateway:
-                gateway_health = await _gateway.health_check()
-                if not gateway_health.healthy:
-                    yield sse_event("error", {
-                        "message": (
-                            f"Inference gateway is unavailable: {gateway_health.message}. "
-                            f"Please ensure Ollama is running at {_config.gateway.url} "
-                            f"and the required models are pulled."
-                        )
-                    })
-                    return
+            healthy, error_msg = await check_gateway_health()
+            if not healthy:
+                yield sse_event("error", {"message": error_msg})
+                return
 
             # Create queue for status messages
             import asyncio
@@ -470,66 +442,8 @@ async def deliberate_stream(question: str):
             _session_deliberations[deliberation.id] = deliberation
             logger.info(f"Streaming deliberation complete: {deliberation.id}")
 
-            # Build confidence response if available
-            confidence = None
-            if deliberation.synthesis.confidence:
-                confidence = {
-                    "overall": deliberation.synthesis.confidence.overall,
-                    "consensus_strength": deliberation.synthesis.confidence.consensus_strength,
-                    "dissent_strength": deliberation.synthesis.confidence.dissent_strength,
-                    "reasoning": deliberation.synthesis.confidence.reasoning,
-                }
-
-            # Build disagreements with severity if available
-            disagreement_list = []
-            for d in deliberation.disagreements:
-                disagreement_dict = {
-                    "topic": d.topic,
-                    "description": d.description,
-                    "positions": d.positions,
-                }
-                # Check if this is an AnalyzedDisagreement with severity
-                if hasattr(d, "severity"):
-                    disagreement_dict["severity"] = d.severity.value if hasattr(d.severity, "value") else str(d.severity)
-                if hasattr(d, "implications"):
-                    disagreement_dict["implications"] = d.implications
-                disagreement_list.append(disagreement_dict)
-
-            # Build deliberation response (matching POST endpoint structure)
-            deliberation_response = {
-                "id": deliberation.id,
-                "question": deliberation.question,
-                "synthesis": {
-                    "content": deliberation.synthesis.content,
-                    "consensus_points": deliberation.synthesis.consensus_points,
-                    "divisions": deliberation.synthesis.divisions,
-                    "unique_insights": deliberation.synthesis.unique_insights,
-                    "confidence": confidence,
-                },
-                "confidence": None,  # Deprecated - confidence now inside synthesis
-                "perspectives": [
-                    {
-                        "member_id": p.member_id,
-                        "model": p.model,
-                        "character": p.character,
-                        "content": p.content,
-                        "timestamp": p.timestamp.isoformat(),
-                    }
-                    for p in deliberation.perspectives
-                ],
-                "disagreements": disagreement_list,
-                "minority_reports": [
-                    {
-                        "member_id": mr.member_id,
-                        "position": mr.position,
-                        "rationale": mr.rationale,
-                    }
-                    for mr in deliberation.minority_reports
-                ],
-            }
-
             # Send completion event
-            yield sse_event("complete", {"deliberation": deliberation_response})
+            yield sse_event("complete", {"deliberation": DeliberationSerializer.to_api_response(deliberation)})
 
         except ValueError as e:
             error_msg = str(e)
@@ -606,6 +520,7 @@ async def privacy_status():
 
 # Persistence endpoints
 @app.post("/deliberations/save", response_model=SaveDeliberationResponse)
+@require_store
 async def save_deliberation(request: SaveDeliberationRequest):
     """
     Save a deliberation with encryption.
@@ -614,8 +529,6 @@ async def save_deliberation(request: SaveDeliberationRequest):
     We cannot read your saved deliberations. If you lose your passphrase,
     your data is gone forever. This is a feature, not a bug.
     """
-    if not _store:
-        raise HTTPException(status_code=503, detail="Store not initialized")
 
     # Check if deliberation exists in session
     deliberation = _session_deliberations.get(request.deliberation_id)
@@ -641,15 +554,13 @@ async def save_deliberation(request: SaveDeliberationRequest):
 
 
 @app.post("/deliberations/load", response_model=DeliberationResponse)
+@require_store
 async def load_deliberation(request: LoadDeliberationRequest):
     """
     Load and decrypt a saved deliberation.
 
     Requires the passphrase used when saving. Wrong passphrase = no data.
     """
-    if not _store:
-        raise HTTPException(status_code=503, detail="Store not initialized")
-
     try:
         deliberation = _store.load(request.deliberation_id, request.passphrase)
 
@@ -658,46 +569,7 @@ async def load_deliberation(request: LoadDeliberationRequest):
 
         logger.info(f"Deliberation loaded: {request.deliberation_id}")
 
-        # Build response (same as deliberate endpoint)
-        confidence = None
-        if deliberation.synthesis.confidence:
-            confidence = ConfidenceResponse(
-                overall=deliberation.synthesis.confidence.overall,
-                consensus_strength=deliberation.synthesis.confidence.consensus_strength,
-                dissent_strength=deliberation.synthesis.confidence.dissent_strength,
-                reasoning=deliberation.synthesis.confidence.reasoning,
-            )
-
-        return DeliberationResponse(
-            id=deliberation.id,
-            question=deliberation.question,
-            synthesis=deliberation.synthesis.content,
-            confidence=confidence,
-            perspectives=[
-                {
-                    "id": p.member_id,
-                    "character": p.character,
-                    "content": p.content,
-                }
-                for p in deliberation.perspectives
-            ],
-            disagreements=[
-                {
-                    "topic": d.topic,
-                    "description": d.description,
-                    "positions": d.positions,
-                }
-                for d in deliberation.disagreements
-            ],
-            minority_reports=[
-                {
-                    "member_id": mr.member_id,
-                    "position": mr.position,
-                    "rationale": mr.rationale,
-                }
-                for mr in deliberation.minority_reports
-            ],
-        )
+        return DeliberationResponse(**DeliberationSerializer.to_api_response(deliberation))
 
     except DecryptionError:
         raise HTTPException(
@@ -709,6 +581,7 @@ async def load_deliberation(request: LoadDeliberationRequest):
 
 
 @app.post("/deliberations/forget")
+@require_store
 async def forget_deliberation(request: ForgetDeliberationRequest):
     """
     Securely delete a saved deliberation.
@@ -716,8 +589,6 @@ async def forget_deliberation(request: ForgetDeliberationRequest):
     The right to be forgotten, implemented literally.
     Data is overwritten before deletion.
     """
-    if not _store:
-        raise HTTPException(status_code=503, detail="Store not initialized")
 
     try:
         _store.forget(request.deliberation_id)
@@ -739,15 +610,13 @@ async def forget_deliberation(request: ForgetDeliberationRequest):
 
 
 @app.get("/deliberations", response_model=ListDeliberationsResponse)
+@require_store
 async def list_deliberations():
     """
     List saved deliberation IDs.
 
     Note: Only IDs are returned. Content requires passphrase to decrypt.
     """
-    if not _store:
-        raise HTTPException(status_code=503, detail="Store not initialized")
-
     ids = _store.list_ids()
     return ListDeliberationsResponse(
         deliberation_ids=ids,
@@ -756,11 +625,9 @@ async def list_deliberations():
 
 
 @app.get("/deliberations/{deliberation_id}/exists")
+@require_store
 async def deliberation_exists(deliberation_id: str):
     """Check if a saved deliberation exists."""
-    if not _store:
-        raise HTTPException(status_code=503, detail="Store not initialized")
-
     exists = _store.exists(deliberation_id)
     return {"id": deliberation_id, "exists": exists}
 

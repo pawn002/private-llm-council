@@ -10,23 +10,28 @@
           } @else {
             @if (status(); as s) {
               <div class="status-row">
-                <span>
-                  Mode: <span class="accent">{{ s.mode.mode }}</span>
-                </span>
+                <app-status-badge
+                  label="Mode"
+                  [value]="s.mode.mode"
+                />
                 <span class="separator">|</span>
-                <span>
-                  Network:
-                  <span [class]="s.network_status.local_only ? 'text-green' : 'text-yellow'">
-                    {{ s.network_status.local_only ? 'Local Only' : 'External Detected' }}
-                  </span>
-                </span>
+                <app-status-badge
+                  label="Network"
+                  [state]="s.network_status.local_only"
+                  trueText="Local Only"
+                  falseText="External Detected"
+                  trueClass="text-green"
+                  falseClass="text-yellow"
+                />
                 <span class="separator">|</span>
-                <span>
-                  Ollama:
-                  <span [class]="s.network_status.ollama_reachable ? 'text-green' : 'text-red'">
-                    {{ s.network_status.ollama_reachable ? 'Connected' : 'Unavailable' }}
-                  </span>
-                </span>
+                <app-status-badge
+                  label="Ollama"
+                  [state]="s.network_status.ollama_reachable"
+                  trueText="Connected"
+                  falseText="Unavailable"
+                  trueClass="text-green"
+                  falseClass="text-red"
+                />
               </div>
             } @else {
               <p class="status-error">

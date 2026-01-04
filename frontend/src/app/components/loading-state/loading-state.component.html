@@ -1,0 +1,48 @@
+<div class="council-loading">
+  <div class="card loading-card">
+    <div class="loading-icon animate-pulse">{{ phaseIcons[phase()] }}</div>
+    <h2>{{ phaseMessages[phase()] }}</h2>
+    <p>{{ statusMessage() }}</p>
+
+    <div class="progress-dots">
+      @for (p of phases; track p; let i = $index) {
+        <div
+          class="dot"
+          [class.active]="phase() === p"
+          [class.complete]="currentPhaseIndex() > i"
+        ></div>
+      }
+    </div>
+
+    <!-- Elapsed Time Display -->
+    <div class="elapsed-time">
+      <small class="text-muted">
+        Elapsed: {{ elapsedTime() }}
+        @if (elapsedSeconds() > 60) {
+          <span class="warning-hint">
+            • Long deliberation in progress
+          </span>
+        }
+        @if (elapsedSeconds() > 300) {
+          <span class="warning-hint text-warning">
+            • Consider canceling and trying a shorter query
+          </span>
+        }
+      </small>
+    </div>
+
+    <!-- Cancel Button -->
+    <div class="cancel-actions">
+      <button
+        type="button"
+        class="btn btn-outline-danger btn-sm"
+        (click)="onCancel()"
+        title="Cancel this deliberation">
+        Cancel Deliberation
+      </button>
+      <small class="text-muted d-block mt-1">
+        You can cancel and try a shorter query
+      </small>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,10 @@
+<div class="meter">
+  <span class="meter-label">{{ label() }}</span>
+  <div class="meter-track">
+    <div
+      class="meter-fill {{ colorClass() }}"
+      [style.width.%]="percentage()"
+    ></div>
+  </div>
+  <span class="meter-value">{{ percentage() }}%</span>
+</div>

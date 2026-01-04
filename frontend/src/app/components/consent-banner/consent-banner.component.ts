@@ -1,9 +1,11 @@
 import { Component, input, output, computed } from '@angular/core';
 import { PrivacyStatus } from '../../models';
+import { StatusBadgeComponent } from '../status-badge/status-badge.component';
 
 @Component({
   selector: 'app-consent-banner',
   standalone: true,
+  imports: [StatusBadgeComponent],
   templateUrl: './consent-banner.component.html',
   styleUrls: ['./consent-banner.component.scss'],
 })

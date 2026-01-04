@@ -1,5 +1,6 @@
 import { Component, input, output, computed } from '@angular/core';
 import { Perspective } from '../../models';
+import { getMemberColor, getMemberIcon } from '../../constants';
 
 @Component({
   selector: 'app-perspective-card',
@@ -15,34 +16,20 @@ export class PerspectiveCardComponent {
   // Signal-based output
   readonly toggle = output<void>();
 
-  private readonly memberColors: Record<string, string> = {
-    phi: 'border-blue',
-    psi: 'border-purple',
-    omega: 'border-amber',
-    sigma: 'border-green',
-    delta: 'border-red',
-  };
-
-  private readonly memberIcons: Record<string, string> = {
-    phi: 'Φ',
-    psi: 'Ψ',
-    omega: 'Ω',
-    sigma: 'Σ',
-    delta: 'Δ',
-  };
-
   // Computed signals for derived state
-  readonly borderColor = computed(() => {
-    return this.memberColors[this.perspective().member_id] || 'border-gray';
-  });
+  readonly borderColor = computed(() => getMemberColor(this.perspective().member_id));
 
-  readonly icon = computed(() => {
-    const p = this.perspective();
-    return this.memberIcons[p.member_id] || p.member_id[0].toUpperCase();
-  });
+  readonly icon = computed(() => getMemberIcon(this.perspective().member_id));
 
   readonly formattedTimestamp = computed(() => {
-    return new Date(this.perspective().timestamp).toLocaleString();
+    return new Date(this.perspective().timestamp).toLocaleString(undefined, {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZoneName: 'short',
+    });
   });
 
   onToggle(): void {

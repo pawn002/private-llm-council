@@ -1,0 +1,18 @@
+@if (safeItems().length > 0) {
+  <div class="card {{ cardClass() }}">
+    <h3>
+      @if (icon()) {
+        <span>{{ icon() }}</span>
+      }
+      {{ title() }}
+    </h3>
+    <ul>
+      @for (item of safeItems(); track item) {
+        <li>
+          <span class="bullet {{ bulletColor() }}">•</span>
+          {{ item }}
+        </li>
+      }
+    </ul>
+  </div>
+}

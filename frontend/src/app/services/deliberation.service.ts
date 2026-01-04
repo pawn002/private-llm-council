@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
 import { ApiService } from './api.service';
 import { Deliberation, DeliberationPhase } from '../models';
+import { ObjectStateSubject, subscribeWithPromise } from '../utils';
 
 export interface DeliberationState {
   phase: DeliberationPhase;
@@ -25,9 +25,9 @@ const initialState: DeliberationState = {
   providedIn: 'root',
 })
 export class DeliberationService {
-  private stateSubject = new BehaviorSubject<DeliberationState>(initialState);
-  state$ = this.stateSubject.asObservable();
-  private timerInterval: any = null;
+  private stateSubject = new ObjectStateSubject<DeliberationState>(initialState);
+  state$ = this.stateSubject.$;
+  private timerInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor(private api: ApiService) {}
 
@@ -40,16 +40,12 @@ export class DeliberationService {
     return ['gathering', 'reviewing', 'synthesizing', 'analyzing'].includes(phase);
   }
 
-  private updateState(partial: Partial<DeliberationState>): void {
-    this.stateSubject.next({ ...this.stateSubject.value, ...partial });
-  }
-
   private setPhase(phase: DeliberationPhase, message = ''): void {
-    this.updateState({ phase, statusMessage: message });
+    this.stateSubject.patch({ phase, statusMessage: message });
   }
 
   private setError(error: string): void {
-    this.updateState({ phase: 'error', error, statusMessage: '' });
+    this.stateSubject.patch({ phase: 'error', error, statusMessage: '' });
   }
 
   ask(question: string): void {
@@ -58,7 +54,7 @@ export class DeliberationService {
       return;
     }
 
-    this.updateState({
+    this.stateSubject.patch({
       phase: 'gathering',
       statusMessage: 'Gathering perspectives from council members...',
       deliberation: null,
@@ -83,13 +79,13 @@ export class DeliberationService {
         } else if (lower.includes('analy')) {
           this.setPhase('analyzing', message);
         } else {
-          this.updateState({ statusMessage: message });
+          this.stateSubject.patch({ statusMessage: message });
         }
       })
       .subscribe({
         next: (deliberation) => {
           this.stopTimer();
-          this.updateState({
+          this.stateSubject.patch({
             phase: 'complete',
             statusMessage: 'Deliberation complete',
             deliberation,
@@ -110,42 +106,33 @@ export class DeliberationService {
       return Promise.resolve(false);
     }
 
-    return new Promise((resolve) => {
-      this.api.saveDeliberation(deliberation.id, passphrase).subscribe({
-        next: () => resolve(true),
-        error: (err) => {
-          this.setError(err.message || 'Failed to save deliberation');
-          resolve(false);
-        },
-      });
-    });
+    return subscribeWithPromise(
+      this.api.saveDeliberation(deliberation.id, passphrase),
+      () => {},
+      (err) => this.setError(err.message || 'Failed to save deliberation')
+    );
   }
 
   load(id: string, passphrase: string): Promise<boolean> {
-    this.updateState({
+    this.stateSubject.patch({
       phase: 'gathering',
       statusMessage: 'Decrypting deliberation...',
       deliberation: null,
       error: null,
     });
 
-    return new Promise((resolve) => {
-      this.api.loadDeliberation(id, passphrase).subscribe({
-        next: (deliberation) => {
-          this.updateState({
-            phase: 'complete',
-            statusMessage: 'Deliberation loaded',
-            deliberation,
-            error: null,
-          });
-          resolve(true);
-        },
-        error: (err) => {
-          this.setError(err.message || 'Failed to load deliberation');
-          resolve(false);
-        },
-      });
-    });
+    return subscribeWithPromise(
+      this.api.loadDeliberation(id, passphrase),
+      (deliberation) => {
+        this.stateSubject.patch({
+          phase: 'complete',
+          statusMessage: 'Deliberation loaded',
+          deliberation,
+          error: null,
+        });
+      },
+      (err) => this.setError(err.message || 'Failed to load deliberation')
+    );
   }
 
   forget(): Promise<boolean> {
@@ -155,22 +142,15 @@ export class DeliberationService {
       return Promise.resolve(false);
     }
 
-    return new Promise((resolve) => {
-      this.api.forgetDeliberation(deliberation.id).subscribe({
-        next: () => {
-          this.reset();
-          resolve(true);
-        },
-        error: (err) => {
-          this.setError(err.message || 'Failed to forget deliberation');
-          resolve(false);
-        },
-      });
-    });
+    return subscribeWithPromise(
+      this.api.forgetDeliberation(deliberation.id),
+      () => this.reset(),
+      (err) => this.setError(err.message || 'Failed to forget deliberation')
+    );
   }
 
   reset(): void {
-    this.stateSubject.next(initialState);
+    this.stateSubject.resetToInitial();
   }
 
   cancel(): void {
@@ -181,7 +161,7 @@ export class DeliberationService {
     this.api.cancelStream();
 
     // Reset state
-    this.updateState({
+    this.stateSubject.patch({
       phase: 'idle',
       statusMessage: 'Deliberation canceled',
       deliberation: null,
@@ -193,7 +173,7 @@ export class DeliberationService {
     // Clear message after 3 seconds
     setTimeout(() => {
       if (this.stateSubject.value.statusMessage === 'Deliberation canceled') {
-        this.updateState({ statusMessage: '' });
+        this.stateSubject.patch({ statusMessage: '' });
       }
     }, 3000);
   }
@@ -205,10 +185,7 @@ export class DeliberationService {
       const current = this.stateSubject.value;
       if (current.startTime) {
         const elapsed = Math.floor((Date.now() - current.startTime) / 1000);
-        this.stateSubject.next({
-          ...current,
-          elapsedSeconds: elapsed
-        });
+        this.stateSubject.patch({ elapsedSeconds: elapsed });
       }
     }, 1000); // Update every second
   }

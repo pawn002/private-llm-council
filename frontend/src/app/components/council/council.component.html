@@ -43,66 +43,20 @@
 
 <!-- Loading State -->
 @if (isLoading()) {
-  <div class="council-loading">
-    <div class="card loading-card">
-      <div class="loading-icon animate-pulse">{{ phaseIcons[state().phase] }}</div>
-      <h2>{{ phaseMessages[state().phase] }}</h2>
-      <p>{{ state().statusMessage }}</p>
-
-      <div class="progress-dots">
-        @for (p of phases; track p; let i = $index) {
-          <div
-            class="dot"
-            [class.active]="state().phase === p"
-            [class.complete]="getPhaseIndex(state().phase) > i"
-          ></div>
-        }
-      </div>
-
-      <!-- Elapsed Time Display -->
-      <div class="elapsed-time">
-        <small class="text-muted">
-          Elapsed: {{ elapsedTime() }}
-          @if (state().elapsedSeconds > 60) {
-            <span class="warning-hint">
-              • Long deliberation in progress
-            </span>
-          }
-          @if (state().elapsedSeconds > 300) {
-            <span class="warning-hint text-warning">
-              • Consider canceling and trying a shorter query
-            </span>
-          }
-        </small>
-      </div>
-
-      <!-- Cancel Button -->
-      <div class="cancel-actions">
-        <button
-          type="button"
-          class="btn btn-outline-danger btn-sm"
-          (click)="onCancel()"
-          title="Cancel this deliberation">
-          Cancel Deliberation
-        </button>
-        <small class="text-muted d-block mt-1">
-          You can cancel and try a shorter query
-        </small>
-      </div>
-    </div>
-  </div>
+  <app-loading-state
+    [phase]="state().phase"
+    [statusMessage]="state().statusMessage"
+    [elapsedSeconds]="state().elapsedSeconds"
+    (cancel)="onCancel()"
+  />
 }
 
 <!-- Error State -->
 @if (state().phase === 'error') {
-  <div class="council-error">
-    <div class="card error-card">
-      <div class="error-icon">❌</div>
-      <h2>Deliberation Failed</h2>
-      <p>{{ state().error }}</p>
-      <button class="btn btn-primary" (click)="onReset()">Try Again</button>
-    </div>
-  </div>
+  <app-error-state
+    [error]="state().error"
+    (retry)="onReset()"
+  />
 }
 
 <!-- Complete State -->

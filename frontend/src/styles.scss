@@ -3,6 +3,7 @@
 :root {
   --council-bg: #0f0f0f;
   --council-surface: #1a1a1a;
+  --council-surface-elevated: #555555;
   --council-border: #2a2a2a;
   --council-accent: #4a9eff;
   --council-success: #22c55e;
@@ -33,18 +34,42 @@ body {
 }
 
 /* Utility classes */
-.bg-council-bg { background-color: var(--council-bg); }
-.bg-council-surface { background-color: var(--council-surface); }
-.border-council-border { border-color: var(--council-border); }
-.text-council-accent { color: var(--council-accent); }
-.text-gray-100 { color: rgba(255, 255, 255, 0.87); }
-.text-gray-300 { color: #d1d5db; }
-.text-gray-400 { color: #9ca3af; }
-.text-gray-500 { color: #6b7280; }
-.text-white { color: #fff; }
-.text-green-400 { color: #4ade80; }
-.text-yellow-400 { color: #facc15; }
-.text-red-400 { color: #f87171; }
+.bg-council-bg {
+  background-color: var(--council-bg);
+}
+.bg-council-surface {
+  background-color: var(--council-surface);
+}
+.border-council-border {
+  border-color: var(--council-border);
+}
+.text-council-accent {
+  color: var(--council-accent);
+}
+.text-gray-100 {
+  color: rgba(255, 255, 255, 0.87);
+}
+.text-gray-300 {
+  color: #d1d5db;
+}
+.text-gray-400 {
+  color: #9ca3af;
+}
+.text-gray-500 {
+  color: #6b7280;
+}
+.text-white {
+  color: #fff;
+}
+.text-green-400 {
+  color: #4ade80;
+}
+.text-yellow-400 {
+  color: #facc15;
+}
+.text-red-400 {
+  color: #f87171;
+}
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
@@ -141,8 +166,13 @@ textarea.input {
 
 /* Animations */
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 
 .animate-pulse {

@@ -39,6 +39,10 @@ env/
 htmlcov/
 .tox/
 .nox/
+.debug-screenshots/*.png
+.debug-screenshots/*.jpg
+.debug-screenshots/*.jpeg
+
 
 # Logs
 logs/
@@ -66,3 +70,4 @@ Thumbs.db
 *.key
 credentials.json
 secrets.yaml
+

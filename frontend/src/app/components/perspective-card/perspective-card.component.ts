@@ -22,7 +22,11 @@ export class PerspectiveCardComponent {
   readonly icon = computed(() => getMemberIcon(this.perspective().member_id));
 
   readonly formattedTimestamp = computed(() => {
-    return new Date(this.perspective().timestamp).toLocaleString();
+    return new Date(this.perspective().timestamp).toLocaleString(undefined, {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+      timeZoneName: 'short',
+    });
   });
 
   onToggle(): void {

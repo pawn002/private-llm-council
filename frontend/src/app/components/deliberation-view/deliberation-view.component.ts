@@ -24,7 +24,11 @@ export class DeliberationViewComponent {
 
   // Computed signals
   readonly formattedTimestamp = computed(() => {
-    return new Date(this.deliberation().timestamp).toLocaleString();
+    return new Date(this.deliberation().timestamp).toLocaleString(undefined, {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+      timeZoneName: 'short',
+    });
   });
 
   togglePerspective(memberId: string): void {

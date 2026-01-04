@@ -172,6 +172,7 @@ This implementation reflects specific choices:
 | Document | Description |
 |----------|-------------|
 | [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) | **Complete beginner's guide** - Start here if new to Python/Docker/Ollama |
+| [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) | **Development workflow guide** - How to make changes, rebuild containers, and test |
 | [MANIFESTO.md](MANIFESTO.md) | Project philosophy and values |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Technical architecture and design decisions |
 | [docs/HARDWARE_REQUIREMENTS.md](docs/HARDWARE_REQUIREMENTS.md) | Hardware sizing guide (including Tier 0: Modest Hardware) |

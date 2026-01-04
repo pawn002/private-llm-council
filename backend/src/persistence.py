@@ -242,6 +242,22 @@ class DeliberationSerializer:
         ]
 
     @staticmethod
+    def _serialize_failed_members(deliberation: Deliberation) -> list[dict[str, Any]]:
+        """Serialize failed members list."""
+        return [
+            {
+                "member_id": f.member_id,
+                "model": f.model,
+                "character": f.character,
+                "error_type": f.error_type,
+                "error_message": f.error_message,
+                "timestamp": f.timestamp.isoformat(),
+                "attempted_retries": f.attempted_retries,
+            }
+            for f in deliberation.failed_members
+        ]
+
+    @staticmethod
     def to_api_response(deliberation: Deliberation) -> dict[str, Any]:
         """
         Serialize deliberation for API responses.
@@ -259,6 +275,7 @@ class DeliberationSerializer:
                 deliberation, include_extended=True
             ),
             "minority_reports": DeliberationSerializer._serialize_minority_reports(deliberation),
+            "failed_members": DeliberationSerializer._serialize_failed_members(deliberation),
             "timestamp": deliberation.timestamp.isoformat(),
             "session_id": deliberation.session_id,
         }
@@ -287,7 +304,7 @@ class DeliberationSerializer:
     @staticmethod
     def from_dict(data: dict[str, Any]) -> Deliberation:
         """Reconstruct a Deliberation from a dictionary."""
-        from .council import Disagreement, MinorityReport
+        from .council import Disagreement, FailedPerspective, MinorityReport
 
         # Parse perspectives
         perspectives = [
@@ -351,6 +368,22 @@ class DeliberationSerializer:
             for mr in data["minority_reports"]
         ]
 
+        # Parse failed members (with default for backwards compatibility)
+        failed_members = []
+        if "failed_members" in data:
+            failed_members = [
+                FailedPerspective(
+                    member_id=f["member_id"],
+                    model=f["model"],
+                    character=f["character"],
+                    error_type=f["error_type"],
+                    error_message=f["error_message"],
+                    timestamp=datetime.fromisoformat(f["timestamp"]),
+                    attempted_retries=f.get("attempted_retries", 0),
+                )
+                for f in data["failed_members"]
+            ]
+
         return Deliberation(
             id=data["id"],
             question=data["question"],
@@ -359,6 +392,7 @@ class DeliberationSerializer:
             synthesis=synthesis,
             disagreements=disagreements,
             minority_reports=minority_reports,
+            failed_members=failed_members,
             timestamp=datetime.fromisoformat(data["timestamp"]),
             session_id=data["session_id"],
         )

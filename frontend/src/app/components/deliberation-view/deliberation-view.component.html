@@ -6,7 +6,14 @@
         <p class="label">Question</p>
         <h1>{{ deliberation().question }}</h1>
         <p class="meta">
-          {{ deliberation().perspectives.length }} perspectives ·
+          @if (deliberation().failed_members?.length) {
+            <span class="warning-badge" [attr.title]="(deliberation().failed_members?.length ?? 0) + ' council member(s) failed to respond'">
+              ⚠ {{ deliberation().perspectives.length }}/{{ totalMembers() }} perspectives ({{ deliberation().failed_members?.length ?? 0 }} failed)
+            </span>
+          } @else {
+            {{ deliberation().perspectives.length }} perspectives
+          }
+          ·
           {{ deliberation().disagreements.length }} disagreements ·
           {{ formattedTimestamp() }}
         </p>
@@ -36,7 +43,11 @@
       [class.active]="activeTab() === 'perspectives'"
       (click)="setActiveTab('perspectives')"
     >
-      Perspectives ({{ deliberation().perspectives.length }})
+      @if (deliberation().failed_members?.length) {
+        Perspectives ({{ deliberation().perspectives.length }}/{{ totalMembers() }})
+      } @else {
+        Perspectives ({{ deliberation().perspectives.length }})
+      }
     </button>
   </div>
 
@@ -50,12 +61,31 @@
       />
     } @else {
       <div class="perspectives-list">
-        @for (perspective of deliberation().perspectives; track perspective.member_id) {
-          <app-perspective-card
-            [perspective]="perspective"
-            [isExpanded]="expandedPerspective() === perspective.member_id"
-            (toggle)="togglePerspective(perspective.member_id)"
-          />
+        <!-- Failed members section (if any) -->
+        @if (deliberation().failed_members?.length) {
+          <div class="failed-perspectives-section">
+            <h3 class="section-title">⚠ Missing Perspectives</h3>
+            <p class="section-description">
+              {{ deliberation().failed_members?.length ?? 0 }} council member(s) failed to provide perspectives:
+            </p>
+            @for (failed of deliberation().failed_members; track failed.member_id) {
+              <app-failed-perspective-card [failedMember]="failed" />
+            }
+          </div>
+        }
+
+        <!-- Successful perspectives -->
+        @if (deliberation().perspectives.length) {
+          @if (deliberation().failed_members?.length) {
+            <h3 class="section-title">Received Perspectives</h3>
+          }
+          @for (perspective of deliberation().perspectives; track perspective.member_id) {
+            <app-perspective-card
+              [perspective]="perspective"
+              [isExpanded]="expandedPerspective() === perspective.member_id"
+              (toggle)="togglePerspective(perspective.member_id)"
+            />
+          }
         }
       </div>
     }

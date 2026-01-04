@@ -1,0 +1,31 @@
+<div class="failed-perspective-card" [class]="borderColor()">
+  <div class="card-header">
+    <div class="member-info">
+      <span class="icon">{{ icon() }}</span>
+      <div class="member-details">
+        <h4 class="member-name">{{ failedMember().member_id }}</h4>
+        <p class="member-model">{{ failedMember().model }}</p>
+      </div>
+    </div>
+    <span class="error-badge" [attr.title]="errorDescription()">
+      {{ errorIcon() }}
+    </span>
+  </div>
+
+  <div class="card-body">
+    <p class="error-message">
+      <strong>{{ errorDescription() }}:</strong>
+      {{ failedMember().error_message }}
+    </p>
+
+    @if (failedMember().attempted_retries > 0) {
+      <p class="retry-info">
+        Retried {{ failedMember().attempted_retries }} time(s) · Failed at {{ formattedTimestamp() }}
+      </p>
+    } @else {
+      <p class="retry-info">
+        Failed at {{ formattedTimestamp() }}
+      </p>
+    }
+  </div>
+</div>

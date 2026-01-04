@@ -8,6 +8,7 @@ Implements the three-stage deliberation process:
 """
 
 import asyncio
+import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
@@ -15,6 +16,8 @@ from uuid import uuid4
 
 from .config import CouncilConfig, CouncilMember, DegradationConfig, Temperature
 from .gateway import GatewayError, InferenceGateway, InferenceResponse, ModelUnavailableError
+
+logger = logging.getLogger("sovereign_council.council")
 
 
 @dataclass
@@ -26,6 +29,19 @@ class Perspective:
     character: str
     content: str
     timestamp: datetime = field(default_factory=datetime.now)
+
+
+@dataclass
+class FailedPerspective:
+    """A council member that failed to provide a perspective."""
+
+    member_id: str
+    model: str
+    character: str
+    error_type: str  # "timeout" | "model_unavailable" | "gateway_error" | "unknown"
+    error_message: str
+    timestamp: datetime = field(default_factory=datetime.now)
+    attempted_retries: int = 0
 
 
 def format_perspectives_for_prompt(
@@ -108,6 +124,7 @@ class Deliberation:
     synthesis: Synthesis
     disagreements: list[Disagreement]
     minority_reports: list[MinorityReport]
+    failed_members: list[FailedPerspective]
     timestamp: datetime
     session_id: str  # Random, not linked to identity
 
@@ -128,6 +145,7 @@ class Deliberation:
             ),
             disagreements=[],
             minority_reports=[],
+            failed_members=[],
             timestamp=datetime.now(),
             session_id=str(uuid4()),
         )
@@ -194,15 +212,37 @@ class CouncilOrchestrator:
         if on_status:
             on_status("Gathering perspectives from council members...")
 
-        perspectives = await self._collect_perspectives(question)
+        perspectives, failed_members = await self._collect_perspectives(question)
         deliberation.perspectives = perspectives
+        deliberation.failed_members = failed_members
 
-        if len(perspectives) < self.degradation.minimum_council_size:
-            raise ValueError(
-                f"Insufficient council members responded "
-                f"({len(perspectives)} < {self.degradation.minimum_council_size}). "
-                f"Cannot proceed with meaningful deliberation."
+        # Notify user of failures
+        if failed_members and on_status:
+            failed_ids = [f.member_id for f in failed_members]
+            on_status(
+                f"Warning: {len(failed_members)} member(s) failed to respond: {', '.join(failed_ids)}"
             )
+
+        # Check minimum size
+        total_attempted = len(self.config.members)
+        if len(perspectives) < self.degradation.minimum_council_size:
+            # Enhance error message with failure details
+            if failed_members:
+                failure_details = "\n".join(
+                    f"  - {f.member_id}: {f.error_message}" for f in failed_members
+                )
+                raise ValueError(
+                    f"Insufficient council members responded "
+                    f"({len(perspectives)}/{total_attempted}, minimum {self.degradation.minimum_council_size}). "
+                    f"Cannot proceed with meaningful deliberation.\n"
+                    f"Failures:\n{failure_details}"
+                )
+            else:
+                raise ValueError(
+                    f"Insufficient council members responded "
+                    f"({len(perspectives)} < {self.degradation.minimum_council_size}). "
+                    f"Cannot proceed with meaningful deliberation."
+                )
 
         if len(perspectives) < self.degradation.warn_below_size:
             if on_status:
@@ -275,21 +315,57 @@ class CouncilOrchestrator:
 
         return deliberation
 
-    async def _collect_perspectives(self, question: str) -> list[Perspective]:
-        """Collect perspectives from all council members in parallel."""
+    async def _collect_perspectives(
+        self, question: str
+    ) -> tuple[list[Perspective], list[FailedPerspective]]:
+        """Collect perspectives from all council members in parallel.
+
+        Returns:
+            Tuple of (successful_perspectives, failed_members)
+        """
         tasks = []
         for member in self.config.members:
-            tasks.append(self._get_perspective(member, question))
+            tasks.append(self._get_perspective_with_retry(member, question))
 
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
         perspectives = []
-        for result in results:
+        failed_members = []
+
+        for i, result in enumerate(results):
+            member = self.config.members[i]
+
             if isinstance(result, Perspective):
                 perspectives.append(result)
-            # Silently skip failed members (logged elsewhere)
+            elif isinstance(result, FailedPerspective):
+                failed_members.append(result)
+                logger.warning(
+                    f"Council member {member.id} ({member.model}) failed: "
+                    f"{result.error_type} - {result.error_message}"
+                )
+            else:
+                # Unexpected exception type - defensive handling
+                error_msg = str(result) if result else "Unknown error"
+                failed_members.append(
+                    FailedPerspective(
+                        member_id=member.id,
+                        model=member.model,
+                        character=member.character,
+                        error_type="unknown",
+                        error_message=error_msg,
+                    )
+                )
+                logger.error(f"Unexpected error for {member.id}: {error_msg}")
 
-        return perspectives
+        # Log summary
+        if failed_members:
+            failed_ids = [f.member_id for f in failed_members]
+            logger.warning(
+                f"Perspective collection incomplete: {len(perspectives)}/{len(self.config.members)} succeeded. "
+                f"Failed: {', '.join(failed_ids)}"
+            )
+
+        return perspectives, failed_members
 
     async def _get_perspective(self, member: CouncilMember, question: str) -> Perspective:
         """Get a single council member's perspective."""
@@ -320,6 +396,53 @@ Provide a thoughtful, well-reasoned response. Be specific and substantive. If yo
             raise
         except GatewayError as e:
             raise GatewayError(f"Failed to get perspective from {member.id}: {e}")
+
+    async def _get_perspective_with_retry(
+        self, member: CouncilMember, question: str
+    ) -> Perspective | FailedPerspective:
+        """Get a perspective with one retry attempt.
+
+        Returns either a Perspective (success) or FailedPerspective (failure).
+        """
+        attempts = 0
+        last_error = None
+        error_type = "unknown"
+
+        for attempt in range(2):  # Initial attempt + 1 retry
+            attempts = attempt + 1
+            try:
+                return await self._get_perspective(member, question)
+            except ModelUnavailableError as e:
+                error_type = "model_unavailable"
+                last_error = str(e)
+                break  # Don't retry - model won't suddenly appear
+            except asyncio.TimeoutError as e:
+                error_type = "timeout"
+                last_error = f"Request timed out"
+                # Could retry once in case of transient timeout
+                if attempt == 0:
+                    logger.info(f"Retrying {member.id} after timeout...")
+                    continue
+            except GatewayError as e:
+                error_type = "gateway_error"
+                last_error = str(e)
+                # Retry once for transient gateway issues
+                if attempt == 0:
+                    logger.info(f"Retrying {member.id} after gateway error...")
+                    continue
+            except Exception as e:
+                error_type = "unknown"
+                last_error = str(e)
+                break
+
+        return FailedPerspective(
+            member_id=member.id,
+            model=member.model,
+            character=member.character,
+            error_type=error_type,
+            error_message=last_error or "Unknown error",
+            attempted_retries=attempts - 1,
+        )
 
     async def _conduct_reviews(
         self, question: str, perspectives: list[Perspective]

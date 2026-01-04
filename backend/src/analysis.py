@@ -112,12 +112,14 @@ Respond in this exact format:
 DISAGREEMENT_COUNT: <number>
 
 DISAGREEMENT_1:
-TOPIC: <brief topic>
-SEVERITY: <MINOR|MODERATE|FUNDAMENTAL>
+TOPIC: brief topic description here
+SEVERITY: MINOR or MODERATE or FUNDAMENTAL
 POSITIONS:
-- [member_id]: <their position>
-- [member_id]: <their position>
-IMPLICATIONS: <what this means for the user>
+- member_name: write their actual specific position on this topic in your own words
+- member_name: write their actual specific position on this topic in your own words
+IMPLICATIONS: explain what this disagreement means for the user making this decision
+
+IMPORTANT: For each position, write the actual substantive viewpoint that member holds. Do NOT use placeholder text like "their position" or "view" - describe what they actually said about this topic.
 
 (repeat for each disagreement, or write NONE if all perspectives agree)
 """
@@ -339,7 +341,13 @@ class DeliberationAnalyzer:
             elif line.startswith("DISAGREEMENT_"):
                 if current_disagreement:
                     current_disagreement.positions = current_positions
-                    disagreements.append(current_disagreement)
+                    # Only add if we have actual positions (not all placeholders)
+                    if current_positions:
+                        disagreements.append(current_disagreement)
+                    elif current_disagreement.topic:
+                        logger.warning(
+                            f"Disagreement '{current_disagreement.topic}' had no valid positions (all were placeholders)"
+                        )
                 current_disagreement = AnalyzedDisagreement(
                     topic="",
                     positions={},
@@ -368,6 +376,29 @@ class DeliberationAnalyzer:
                     parts = line[2:].split(":", 1)
                     member_id = parts[0].strip()
                     position = parts[1].strip() if len(parts) > 1 else ""
+
+                    # Validate position is not placeholder text
+                    placeholder_indicators = [
+                        "<their position>",
+                        "<position>",
+                        "<view>",
+                        "<their view>",
+                        "their position",
+                        "their view",
+                        "position here",
+                        "view here",
+                    ]
+                    is_placeholder = any(
+                        indicator in position.lower() for indicator in placeholder_indicators
+                    )
+
+                    if is_placeholder:
+                        # Skip this position - it's placeholder text
+                        logger.warning(
+                            f"Disagreement analysis returned placeholder text for {member_id}: '{position}'"
+                        )
+                        continue
+
                     # Try to match to actual member ID
                     for mid in member_ids:
                         if mid.lower() in member_id.lower():
@@ -381,7 +412,13 @@ class DeliberationAnalyzer:
         # Don't forget the last one
         if current_disagreement and current_disagreement.topic:
             current_disagreement.positions = current_positions
-            disagreements.append(current_disagreement)
+            # Only add if we have actual positions (not all placeholders)
+            if current_positions:
+                disagreements.append(current_disagreement)
+            else:
+                logger.warning(
+                    f"Disagreement '{current_disagreement.topic}' had no valid positions (all were placeholders)"
+                )
 
         return disagreements
 

@@ -11,6 +11,16 @@ export interface Perspective {
   timestamp: string;
 }
 
+export interface FailedPerspective {
+  member_id: string;
+  model: string;
+  character: string;
+  error_type: 'timeout' | 'model_unavailable' | 'gateway_error' | 'unknown';
+  error_message: string;
+  timestamp: string;
+  attempted_retries: number;
+}
+
 export interface Critique {
   reviewer_id: string;
   rankings: string[];
@@ -54,6 +64,7 @@ export interface Deliberation {
   synthesis: Synthesis;
   disagreements: Disagreement[];
   minority_reports: MinorityReport[];
+  failed_members?: FailedPerspective[];
   timestamp: string;
   session_id: string;
 }

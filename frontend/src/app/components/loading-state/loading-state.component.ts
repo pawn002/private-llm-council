@@ -20,6 +20,9 @@ export class LoadingStateComponent {
   /** Elapsed time in seconds */
   readonly elapsedSeconds = input<number>(0);
 
+  /** Whether Ollama is busy processing other requests */
+  readonly ollamaBusy = input<boolean>(false);
+
   /** Emits when cancel is clicked */
   readonly cancel = output<void>();
 

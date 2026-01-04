@@ -6,6 +6,7 @@ import {
   Deliberation,
   HealthStatus,
   PrivacyStatus,
+  GatewayBusyStatus,
 } from '../models';
 
 const API_BASE = '/api';
@@ -40,6 +41,18 @@ export class ApiService {
   getPrivacyStatus(): Observable<PrivacyStatus> {
     return this.http
       .get<PrivacyStatus>(`${API_BASE}/privacy/status`)
+      .pipe(catchError(this.handleError));
+  }
+
+  getGatewayBusyStatus(since?: number): Observable<GatewayBusyStatus> {
+    let url = `${API_BASE}/gateway/busy`;
+    if (since) {
+      // Convert timestamp to ISO 8601 string
+      const sinceDate = new Date(since).toISOString();
+      url += `?since=${encodeURIComponent(sinceDate)}`;
+    }
+    return this.http
+      .get<GatewayBusyStatus>(url)
       .pipe(catchError(this.handleError));
   }
 

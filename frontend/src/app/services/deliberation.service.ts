@@ -10,6 +10,7 @@ export interface DeliberationState {
   error: string | null;
   startTime: number | null;
   elapsedSeconds: number;
+  ollamaBusy: boolean;
 }
 
 const initialState: DeliberationState = {
@@ -19,6 +20,7 @@ const initialState: DeliberationState = {
   error: null,
   startTime: null,
   elapsedSeconds: 0,
+  ollamaBusy: false,
 };
 
 @Injectable({
@@ -28,6 +30,7 @@ export class DeliberationService {
   private stateSubject = new ObjectStateSubject<DeliberationState>(initialState);
   state$ = this.stateSubject.$;
   private timerInterval: ReturnType<typeof setInterval> | null = null;
+  private busyPollingInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor(private api: ApiService) {}
 
@@ -65,6 +68,7 @@ export class DeliberationService {
 
     // Start timer
     this.startTimer();
+    this.startBusyPolling();
 
     // Try streaming first
     this.api
@@ -85,6 +89,7 @@ export class DeliberationService {
       .subscribe({
         next: (deliberation) => {
           this.stopTimer();
+          this.stopBusyPolling();
           this.stateSubject.patch({
             phase: 'complete',
             statusMessage: 'Deliberation complete',
@@ -94,6 +99,7 @@ export class DeliberationService {
         },
         error: (err) => {
           this.stopTimer();
+          this.stopBusyPolling();
           this.setError(err.message || 'Deliberation failed');
         },
       });
@@ -150,12 +156,14 @@ export class DeliberationService {
   }
 
   reset(): void {
+    this.stopBusyPolling();
     this.stateSubject.resetToInitial();
   }
 
   cancel(): void {
     // Stop timer
     this.stopTimer();
+    this.stopBusyPolling();
 
     // Cancel API stream
     this.api.cancelStream();
@@ -194,6 +202,36 @@ export class DeliberationService {
     if (this.timerInterval) {
       clearInterval(this.timerInterval);
       this.timerInterval = null;
+    }
+  }
+
+  private startBusyPolling(): void {
+    this.stopBusyPolling(); // Clear any existing polling
+
+    // Delay first poll by 15 seconds to give current deliberation time to load models
+    // This prevents false positives from warmup models
+    setTimeout(() => {
+      // Poll every 8 seconds for Ollama busy status
+      this.busyPollingInterval = setInterval(() => {
+        const startTime = this.stateSubject.value.startTime;
+        this.api.getGatewayBusyStatus(startTime ?? undefined).subscribe({
+          next: (status) => {
+            this.stateSubject.patch({ ollamaBusy: status.is_busy });
+          },
+          error: (err) => {
+            // Silently fail - don't break deliberations if polling fails
+            console.warn('Failed to check Ollama busy status:', err);
+            this.stateSubject.patch({ ollamaBusy: false });
+          },
+        });
+      }, 8000); // 8 seconds interval
+    }, 15000); // Delay 15 seconds before starting to poll
+  }
+
+  private stopBusyPolling(): void {
+    if (this.busyPollingInterval) {
+      clearInterval(this.busyPollingInterval);
+      this.busyPollingInterval = null;
     }
   }
 }

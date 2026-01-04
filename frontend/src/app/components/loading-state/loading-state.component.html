@@ -31,6 +31,15 @@
       </small>
     </div>
 
+    <!-- Ollama Busy Indicator -->
+    @if (ollamaBusy()) {
+      <div class="ollama-busy-notice">
+        <small class="text-info">
+          ⏳ Ollama is processing other requests
+        </small>
+      </div>
+    }
+
     <!-- Cancel Button -->
     <div class="cancel-actions">
       <button

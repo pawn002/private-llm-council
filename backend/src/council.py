@@ -158,10 +158,14 @@ class CouncilOrchestrator:
         if self._analyzer is None and self.enable_deep_analysis:
             from .analysis import DeliberationAnalyzer
 
-            # Use first council member model for analysis
-            analysis_model = (
-                self.config.members[0].model if self.config.members else None
-            )
+            # Use chairman model for analysis (better suited for analytical tasks)
+            # Falls back to first council member if chairman unavailable
+            analysis_model = None
+            if self.config.chairman:
+                analysis_model = self.config.chairman.model
+            elif self.config.members:
+                analysis_model = self.config.members[0].model
+
             if analysis_model:
                 self._analyzer = DeliberationAnalyzer(self.gateway, analysis_model)
         return self._analyzer

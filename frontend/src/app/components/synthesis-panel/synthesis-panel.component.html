@@ -13,9 +13,11 @@
       <div class="confidence-section">
         <h3>Confidence Assessment</h3>
         <div class="confidence-meters">
-          <app-confidence-meter label="Overall" [value]="confidence.overall" />
-          <app-confidence-meter label="Consensus" [value]="confidence.consensus_strength" />
-          <app-confidence-meter label="Dissent" [value]="confidence.dissent_strength" />
+          <app-confidence-meter label="Synthesis Quality" [value]="confidence.overall" />
+          <app-confidence-meter
+            label="Dissent Strength"
+            [value]="confidence.dissent_strength"
+            colorMode="neutral" />
         </div>
         <p class="confidence-reasoning">{{ confidence.reasoning }}</p>
       </div>

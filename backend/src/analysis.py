@@ -8,10 +8,13 @@ no external NLP services that might phone home.
 Philosophy: The council understands itself through its own intelligence.
 """
 
+import logging
 from dataclasses import dataclass
 from enum import Enum
 
 from .config import Temperature
+
+logger = logging.getLogger(__name__)
 from .council import (
     Perspective,
     Critique,
@@ -33,6 +36,38 @@ def extract_value(line: str) -> str:
     if ":" not in line:
         return line.strip()
     return line.split(":", 1)[1].strip()
+
+
+def normalize_field_name(text: str) -> str:
+    """
+    Normalize field name for fuzzy matching.
+    Converts to lowercase and removes spaces/underscores.
+
+    Examples:
+        "OVERALL_CONFIDENCE:" -> "overallconfidence"
+        "Overall Confidence:" -> "overallconfidence"
+        "overall confidence is" -> "overallconfidenceis"
+    """
+    return text.lower().replace("_", "").replace(" ", "").rstrip(":")
+
+
+def matches_field(line: str, field_name: str) -> bool:
+    """
+    Check if line starts with the given field name (fuzzy match).
+
+    Args:
+        line: The line to check (e.g., "Overall Confidence: 0.8")
+        field_name: Expected field name (e.g., "OVERALL_CONFIDENCE")
+
+    Returns:
+        True if line matches the field name
+    """
+    # Normalize both the line prefix and expected field name
+    line_prefix = line.split(":")[0] if ":" in line else line
+    normalized_line = normalize_field_name(line_prefix)
+    normalized_field = normalize_field_name(field_name)
+
+    return normalized_line.startswith(normalized_field)
 
 
 class DisagreementSeverity(str, Enum):
@@ -398,25 +433,62 @@ class DeliberationAnalyzer:
         dissent = 0.5
         reasoning = "Unable to assess confidence"
 
+        # Track what we successfully parsed
+        parsed_fields = []
+
+        # Log the raw response for debugging (first 500 chars to avoid log spam)
+        logger.debug(f"Confidence assessment raw response: {response[:500]}...")
+
         for line in response.strip().split("\n"):
             line = line.strip()
-            if line.startswith("OVERALL_CONFIDENCE:"):
+
+            # Skip empty lines
+            if not line:
+                continue
+
+            # Check each field with fuzzy matching
+            if matches_field(line, "OVERALL_CONFIDENCE"):
                 try:
                     overall = clamp(float(extract_value(line)))
-                except ValueError:
-                    pass
-            elif line.startswith("CONSENSUS_STRENGTH:"):
+                    parsed_fields.append(f"overall={overall:.2f}")
+                    logger.debug(f"Parsed OVERALL_CONFIDENCE: {overall}")
+                except ValueError as e:
+                    logger.warning(f"Failed to parse OVERALL_CONFIDENCE from '{line}': {e}")
+
+            elif matches_field(line, "CONSENSUS_STRENGTH"):
                 try:
                     consensus = clamp(float(extract_value(line)))
-                except ValueError:
-                    pass
-            elif line.startswith("DISSENT_STRENGTH:"):
+                    parsed_fields.append(f"consensus={consensus:.2f}")
+                    logger.debug(f"Parsed CONSENSUS_STRENGTH: {consensus}")
+                except ValueError as e:
+                    logger.warning(f"Failed to parse CONSENSUS_STRENGTH from '{line}': {e}")
+
+            elif matches_field(line, "DISSENT_STRENGTH"):
                 try:
                     dissent = clamp(float(extract_value(line)))
-                except ValueError:
-                    pass
-            elif line.startswith("REASONING:"):
+                    parsed_fields.append(f"dissent={dissent:.2f}")
+                    logger.debug(f"Parsed DISSENT_STRENGTH: {dissent}")
+                except ValueError as e:
+                    logger.warning(f"Failed to parse DISSENT_STRENGTH from '{line}': {e}")
+
+            elif matches_field(line, "REASONING"):
                 reasoning = extract_value(line)
+                parsed_fields.append("reasoning")
+                logger.debug(f"Parsed REASONING: {reasoning[:100]}...")
+
+        # Log summary of what was parsed
+        if parsed_fields:
+            logger.debug(f"Successfully parsed fields: {', '.join(parsed_fields)}")
+        else:
+            logger.warning("No confidence fields parsed from response, using defaults (0.5)")
+
+        # Log if any field is still at default value
+        if overall == 0.5 and "overall" not in [f.split("=")[0] for f in parsed_fields]:
+            logger.warning("OVERALL_CONFIDENCE not parsed, using default 0.5")
+        if consensus == 0.5 and "consensus" not in [f.split("=")[0] for f in parsed_fields]:
+            logger.warning("CONSENSUS_STRENGTH not parsed, using default 0.5")
+        if dissent == 0.5 and "dissent" not in [f.split("=")[0] for f in parsed_fields]:
+            logger.warning("DISSENT_STRENGTH not parsed, using default 0.5")
 
         return ConfidenceAssessment(
             overall=overall,

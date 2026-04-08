@@ -6,14 +6,14 @@
   }
 
   .text-green {
-    color: var(--color-status-success);
+    color: var(--color-status-success-text);
   }
 
   .text-yellow {
-    color: var(--color-status-warning);
+    color: var(--color-status-warning-text);
   }
 
   .text-red {
-    color: var(--color-status-error);
+    color: var(--color-status-error-text);
   }
 }

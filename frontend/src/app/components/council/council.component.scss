@@ -45,7 +45,7 @@
 
   p {
     font-size: var(--font-size-sm);
-    color: var(--color-text-disabled);
+    color: var(--color-text-subtle);
     margin: 0;
 
     & + p {
@@ -140,10 +140,10 @@
   .warning-hint {
     margin-left: 0.5rem;
     font-size: var(--font-size-sm);
-    color: var(--color-status-warning);
+    color: var(--color-status-warning-text);
 
     &.text-warning {
-      color: var(--color-status-warning);
+      color: var(--color-status-warning-text);
       font-weight: var(--font-weight-medium);
     }
   }

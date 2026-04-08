@@ -17,8 +17,8 @@ h3 {
   align-items: center;
   gap: 0.5rem;
 
-  .consensus-card & { color: var(--color-status-success); }
-  .divisions-card & { color: var(--color-status-warning); }
+  .consensus-card & { color: var(--color-status-success-text); }
+  .divisions-card & { color: var(--color-status-warning-text); }
   .insights-card  & { color: var(--purple-400); }
 }
 

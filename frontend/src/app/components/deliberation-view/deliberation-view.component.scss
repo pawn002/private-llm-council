@@ -15,7 +15,7 @@
   .question-text {
     .label {
       font-size: var(--font-size-xs);
-      color: var(--color-text-disabled);
+      color: var(--color-text-subtle);
       margin: 0 0 0.25rem;
     }
 
@@ -28,11 +28,11 @@
 
     .meta {
       font-size: var(--font-size-xs);
-      color: var(--color-text-disabled);
+      color: var(--color-text-subtle);
       margin: 0.5rem 0 0;
 
       .warning-badge {
-        color: var(--color-status-warning);
+        color: var(--color-status-warning-text);
         font-weight: var(--font-weight-semibold);
         display: inline-flex;
         align-items: center;

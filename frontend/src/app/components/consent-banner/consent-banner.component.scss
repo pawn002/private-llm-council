@@ -53,14 +53,14 @@
 }
 
 .separator {
-  color: var(--color-text-disabled);
+  color: var(--color-text-subtle);
   margin: 0 0.5rem;
 }
 
 .accent       { color: var(--color-action-primary); }
-.text-green   { color: var(--color-status-success); }
-.text-yellow  { color: var(--color-status-warning); }
-.text-red     { color: var(--color-status-error); }
+.text-green   { color: var(--color-status-success-text); }
+.text-yellow  { color: var(--color-status-warning-text); }
+.text-red     { color: var(--color-status-error-text); }
 
 .status-loading {
   font-size: var(--font-size-sm);
@@ -70,7 +70,7 @@
 
 .status-error {
   font-size: var(--font-size-sm);
-  color: var(--color-status-error);
+  color: var(--color-status-error-text);
   margin: 0.25rem 0 0;
 }
 
@@ -82,7 +82,7 @@
 
 .warning-count {
   font-size: var(--font-size-sm);
-  color: var(--color-status-warning);
+  color: var(--color-status-warning-text);
 }
 
 .warnings-list {
@@ -100,7 +100,7 @@
       align-items: center;
       gap: 0.5rem;
       font-size: var(--font-size-sm);
-      color: var(--color-status-warning);
+      color: var(--color-status-warning-text);
       margin-bottom: 0.25rem;
     }
   }
@@ -113,5 +113,5 @@
 .privacy-note {
   margin-top: 0.5rem;
   font-size: var(--font-size-xs);
-  color: var(--color-text-disabled);
+  color: var(--color-text-subtle);
 }

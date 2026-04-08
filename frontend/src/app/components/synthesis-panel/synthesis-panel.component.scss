@@ -34,8 +34,8 @@
 }
 
 .synthesis-content {
-  font-family: var(--font-family-mono);
-  color: var(--color-text-subtle);
+  font-family: var(--font-family-serif);
+  color: var(--color-text-default);
   white-space: pre-wrap;
   line-height: var(--line-height-relaxed);
 }
@@ -98,7 +98,7 @@
 .confidence-reasoning {
   margin-top: 0.5rem;
   font-size: var(--font-size-xs);
-  color: var(--color-text-disabled);
+  color: var(--color-text-subtle);
   font-style: italic;
 }
 
@@ -117,11 +117,11 @@
   gap: 0.5rem;
 }
 
-.consensus-card h3    { color: var(--color-status-success); }
-.divisions-card h3    { color: var(--color-status-warning); }
+.consensus-card h3    { color: var(--color-status-success-text); }
+.divisions-card h3    { color: var(--color-status-warning-text); }
 .insights-card h3     { color: var(--purple-400); }
 .disagreements-card h3 { color: var(--color-text-subtle-on-surface); }
-.minority-card h3     { color: var(--color-status-error); }
+.minority-card h3     { color: var(--color-status-error-text); }
 
 .card ul {
   list-style: none;
@@ -183,7 +183,7 @@
 
   &.severity-minor {
     background-color: color-mix(in oklch, var(--azure-400) 20%, transparent);
-    color: var(--azure-300);
+    color: var(--color-link);
   }
 
   &.severity-moderate {
@@ -229,7 +229,7 @@
 .minority-member {
   font-size: var(--font-size-lg);
   font-family: var(--font-family-serif);
-  color: var(--color-status-error);
+  color: var(--color-status-error-text);
   text-transform: capitalize;
 }
 

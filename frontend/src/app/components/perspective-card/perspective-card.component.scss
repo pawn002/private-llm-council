@@ -69,8 +69,8 @@
 
 .perspective-text {
   font-size: var(--font-size-sm);
-  font-family: var(--font-family-mono);
-  color: var(--color-text-subtle);
+  font-family: var(--font-family-serif);
+  color: var(--color-text-default);
   white-space: pre-wrap;
   line-height: var(--line-height-relaxed);
 }
@@ -78,5 +78,5 @@
 .timestamp {
   margin-top: 0.5rem;
   font-size: var(--font-size-xs);
-  color: var(--color-text-disabled);
+  color: var(--color-text-subtle);
 }

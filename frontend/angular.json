@@ -31,7 +31,10 @@
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": ["src/favicon.ico", "src/assets"],
-            "styles": ["src/styles.scss"],
+            "styles": [
+              "node_modules/@candor-design/tokens/tokens/candor-tokens.css",
+              "src/styles.scss"
+            ],
             "scripts": []
           },
           "configurations": {
@@ -44,8 +47,8 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "2kb",
-                  "maximumError": "4kb"
+                  "maximumWarning": "4kb",
+                  "maximumError": "8kb"
                 }
               ],
               "outputHashing": "all"
@@ -80,7 +83,10 @@
             "tsConfig": "tsconfig.spec.json",
             "inlineStyleLanguage": "scss",
             "assets": ["src/favicon.ico", "src/assets"],
-            "styles": ["src/styles.scss"],
+            "styles": [
+              "node_modules/@candor-design/tokens/tokens/candor-tokens.css",
+              "src/styles.scss"
+            ],
             "scripts": []
           }
         }

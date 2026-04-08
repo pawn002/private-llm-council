@@ -15,6 +15,11 @@
 <footer>
   <div class="footer-content">
     <span>The Sovereign Council v0.1.0</span>
+    <button
+      class="theme-toggle"
+      (click)="toggleTheme()"
+      [attr.aria-label]="isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
+    >{{ isDark() ? '☀' : '☾' }}</button>
     <span class="status">
       <span class="status-dot"></span>
       {{ status()?.mode?.mode ?? 'Loading...' }}

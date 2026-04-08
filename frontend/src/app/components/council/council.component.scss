@@ -8,14 +8,14 @@
   margin-bottom: 2rem;
 
   h1 {
-    font-size: 1.875rem;
-    font-weight: 700;
-    color: white;
+    font-size: var(--font-size-h2);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-default);
     margin: 0 0 0.5rem;
   }
 
   p {
-    color: #9ca3af;
+    color: var(--color-text-subtle-on-surface);
     margin: 0;
   }
 }
@@ -44,8 +44,8 @@
   text-align: center;
 
   p {
-    font-size: 0.875rem;
-    color: #6b7280;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-disabled);
     margin: 0;
 
     & + p {
@@ -75,23 +75,23 @@
 .loading-card,
 .error-card {
   h2 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: white;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-default);
     margin: 0 0 0.5rem;
   }
 
   p {
-    color: #9ca3af;
+    color: var(--color-text-subtle-on-surface);
     margin: 0;
   }
 }
 
 .error-card {
-  border-color: rgba(239, 68, 68, 0.3);
+  border-color: color-mix(in oklch, var(--color-status-error) 30%, transparent);
 
   h2 {
-    color: #f87171;
+    color: var(--color-status-error-text, var(--color-status-error));
   }
 
   .btn {
@@ -110,16 +110,16 @@
   width: 0.75rem;
   height: 0.75rem;
   border-radius: 50%;
-  background-color: var(--council-border);
+  background-color: var(--color-border-default);
   transition: all 0.3s;
 
   &.active {
-    background-color: var(--council-accent);
+    background-color: var(--color-action-primary);
     animation: pulse 2s infinite;
   }
 
   &.complete {
-    background-color: #22c55e;
+    background-color: var(--color-status-success);
   }
 }
 
@@ -133,18 +133,18 @@
   text-align: center;
 
   .text-muted {
-    color: #9ca3af;
-    font-size: 0.875rem;
+    color: var(--color-text-subtle-on-surface);
+    font-size: var(--font-size-sm);
   }
 
   .warning-hint {
     margin-left: 0.5rem;
-    font-size: 0.875rem;
-    color: #fbbf24;
+    font-size: var(--font-size-sm);
+    color: var(--color-status-warning);
 
     &.text-warning {
-      color: #f59e0b;
-      font-weight: 500;
+      color: var(--color-status-warning);
+      font-weight: var(--font-weight-medium);
     }
   }
 }
@@ -166,7 +166,7 @@
   }
 
   .text-muted {
-    color: #9ca3af;
-    font-size: 0.875rem;
+    color: var(--color-text-subtle-on-surface);
+    font-size: var(--font-size-sm);
   }
 }

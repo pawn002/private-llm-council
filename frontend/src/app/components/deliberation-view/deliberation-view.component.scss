@@ -14,26 +14,26 @@
 
   .question-text {
     .label {
-      font-size: 0.75rem;
-      color: #6b7280;
+      font-size: var(--font-size-xs);
+      color: var(--color-text-disabled);
       margin: 0 0 0.25rem;
     }
 
     h1 {
-      font-size: 1.25rem;
-      font-weight: 500;
-      color: white;
+      font-size: var(--font-size-lg);
+      font-weight: var(--font-weight-medium);
+      color: var(--color-text-default);
       margin: 0;
     }
 
     .meta {
-      font-size: 0.75rem;
-      color: #6b7280;
+      font-size: var(--font-size-xs);
+      color: var(--color-text-disabled);
       margin: 0.5rem 0 0;
 
       .warning-badge {
-        color: #f59e0b;
-        font-weight: 600;
+        color: var(--color-status-warning);
+        font-weight: var(--font-weight-semibold);
         display: inline-flex;
         align-items: center;
         gap: 0.25rem;
@@ -56,14 +56,14 @@
 
 .tabs {
   display: flex;
-  border-bottom: 1px solid var(--council-border);
+  border-bottom: var(--border-width-thin) solid var(--color-border-default);
 }
 
 .tab {
   padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #9ca3af;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-subtle-on-surface);
   background: transparent;
   border: none;
   border-bottom: 2px solid transparent;
@@ -71,12 +71,12 @@
   transition: all 0.2s;
 
   &:hover {
-    color: white;
+    color: var(--color-text-default);
   }
 
   &.active {
-    color: var(--council-accent);
-    border-bottom-color: var(--council-accent);
+    color: var(--color-action-primary);
+    border-bottom-color: var(--color-action-primary);
   }
 }
 
@@ -86,29 +86,29 @@
   gap: 0.75rem;
 
   .failed-perspectives-section {
-    background: #fef3c7;
-    border: 1px solid #f59e0b;
-    border-radius: 8px;
-    padding: 1.5rem;
+    background: var(--color-status-warning-bg);
+    border: var(--border-width-thin) solid var(--color-status-warning);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-card-padding);
     margin-bottom: 2rem;
 
     .section-title {
-      font-size: 1.125rem;
-      font-weight: 600;
+      font-size: var(--font-size-lg);
+      font-weight: var(--font-weight-semibold);
       margin: 0 0 0.5rem 0;
-      color: #92400e;
+      color: var(--color-status-warning-text);
     }
 
     .section-description {
       margin: 0 0 1rem 0;
-      color: #6b7280;
+      color: var(--color-text-subtle-on-surface);
     }
   }
 
   .section-title {
-    font-size: 1.125rem;
-    font-weight: 600;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
     margin: 0 0 1rem 0;
-    color: white;
+    color: var(--color-text-default);
   }
 }

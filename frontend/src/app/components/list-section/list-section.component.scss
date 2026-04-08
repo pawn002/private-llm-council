@@ -1,25 +1,25 @@
 .card {
-  background-color: var(--council-surface);
-  border: 1px solid var(--council-border);
-  border-radius: 0.5rem;
+  background-color: var(--color-bg-surface);
+  border: var(--border-width-thin) solid var(--color-border-default);
+  border-radius: var(--radius-md);
   padding: 1rem;
 
-  &.consensus-card { border-color: rgba(34, 197, 94, 0.3); }
-  &.divisions-card { border-color: rgba(234, 179, 8, 0.3); }
-  &.insights-card { border-color: rgba(168, 85, 247, 0.3); }
+  &.consensus-card { border-color: color-mix(in oklch, var(--color-status-success) 40%, transparent); }
+  &.divisions-card { border-color: color-mix(in oklch, var(--color-status-warning) 40%, transparent); }
+  &.insights-card  { border-color: color-mix(in oklch, var(--purple-500) 40%, transparent); }
 }
 
 h3 {
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
   margin: 0 0 0.5rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
 
-  .consensus-card & { color: #4ade80; }
-  .divisions-card & { color: #facc15; }
-  .insights-card & { color: #c084fc; }
+  .consensus-card & { color: var(--color-status-success); }
+  .divisions-card & { color: var(--color-status-warning); }
+  .insights-card  & { color: var(--purple-400); }
 }
 
 ul {
@@ -32,15 +32,15 @@ li {
   display: flex;
   align-items: flex-start;
   gap: 0.5rem;
-  font-size: 0.875rem;
-  color: #d1d5db;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-subtle);
   margin-bottom: 0.25rem;
 }
 
 .bullet {
   flex-shrink: 0;
 
-  &.green { color: #22c55e; }
-  &.yellow { color: #eab308; }
-  &.purple { color: #a855f7; }
+  &.green  { color: var(--color-status-success); }
+  &.yellow { color: var(--color-status-warning); }
+  &.purple { color: var(--purple-400); }
 }

@@ -5,16 +5,16 @@
 }
 
 .meter-label {
-  font-size: 0.75rem;
-  color: #9ca3af;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle-on-surface);
   width: 6rem;
 }
 
 .meter-track {
   flex: 1;
   height: 0.5rem;
-  background-color: var(--council-border);
-  border-radius: 9999px;
+  background-color: var(--color-border-default);
+  border-radius: var(--radius-full);
   overflow: hidden;
 }
 
@@ -22,17 +22,17 @@
   height: 100%;
   transition: width 0.3s ease;
 
-  &.bg-green { background-color: #22c55e; }
-  &.bg-yellow { background-color: #eab308; }
-  &.bg-red { background-color: #ef4444; }
-  &.bg-blue-low { background-color: #60a5fa; }      // Tailwind blue-400
-  &.bg-blue-medium { background-color: #3b82f6; }   // Tailwind blue-500
-  &.bg-blue-high { background-color: #2563eb; }     // Tailwind blue-600
+  &.bg-green      { background-color: var(--color-status-success); }
+  &.bg-yellow     { background-color: var(--color-status-warning); }
+  &.bg-red        { background-color: var(--color-status-error); }
+  &.bg-blue-low   { background-color: var(--azure-300); }
+  &.bg-blue-medium { background-color: var(--azure-400); }
+  &.bg-blue-high  { background-color: var(--azure-500); }
 }
 
 .meter-value {
-  font-size: 0.75rem;
-  color: #d1d5db;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
   width: 3rem;
   text-align: right;
 }

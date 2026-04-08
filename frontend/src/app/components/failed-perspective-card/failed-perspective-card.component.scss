@@ -1,7 +1,7 @@
 .failed-perspective-card {
-  background: white;
-  border-radius: 8px;
-  border-left: 4px solid;
+  background: var(--color-bg-surface);
+  border-radius: var(--radius-md);
+  border-left: var(--border-width-thick) solid var(--color-status-error);
   padding: 1rem;
   margin-bottom: 1rem;
   opacity: 0.85;
@@ -24,16 +24,16 @@
 
       .member-details {
         .member-name {
-          font-size: 1rem;
-          font-weight: 600;
+          font-size: var(--font-size-base);
+          font-weight: var(--font-weight-semibold);
           margin: 0;
-          color: var(--color-text);
+          color: var(--color-text-default);
         }
 
         .member-model {
-          font-size: 0.875rem;
+          font-size: var(--font-size-sm);
           margin: 0;
-          color: var(--color-text-secondary);
+          color: var(--color-text-subtle-on-surface);
         }
       }
     }
@@ -45,19 +45,19 @@
 
   .card-body {
     .error-message {
-      font-size: 0.875rem;
+      font-size: var(--font-size-sm);
       margin: 0 0 0.5rem 0;
-      color: var(--color-text-secondary);
+      color: var(--color-text-subtle-on-surface);
 
       strong {
-        color: var(--color-text);
+        color: var(--color-text-default);
       }
     }
 
     .retry-info {
-      font-size: 0.75rem;
+      font-size: var(--font-size-xs);
       margin: 0;
-      color: var(--color-text-tertiary);
+      color: var(--color-text-disabled);
     }
   }
 }

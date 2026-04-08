@@ -5,22 +5,23 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: var(--color-overlay);
 }
 
 .dialog {
-  background-color: var(--council-surface);
-  border: 1px solid var(--council-border);
-  border-radius: 0.5rem;
-  padding: 1.5rem;
+  background-color: var(--color-bg-surface);
+  border: var(--border-width-thin) solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-card-padding);
   width: 100%;
   max-width: 28rem;
   margin: 1rem;
+  box-shadow: var(--shadow-modal);
 
   h2 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: white;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-default);
     margin: 0 0 1rem;
     display: flex;
     align-items: center;
@@ -31,26 +32,27 @@
 .error-message {
   margin-bottom: 1rem;
   padding: 0.75rem;
-  background-color: rgba(239, 68, 68, 0.2);
-  border: 1px solid rgba(239, 68, 68, 0.5);
-  border-radius: 0.25rem;
-  color: #fca5a5;
-  font-size: 0.875rem;
+  background-color: var(--color-status-error-bg);
+  border: var(--border-width-thin) solid color-mix(in oklch, var(--color-status-error) 50%, transparent);
+  border-radius: var(--radius-sm);
+  color: var(--color-status-error-text);
+  font-size: var(--font-size-sm);
 }
 
 .description {
-  font-size: 0.875rem;
-  color: #9ca3af;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-subtle-on-surface);
   margin: 0 0 1rem;
 }
 
 .id-display {
-  font-size: 0.875rem;
-  color: #6b7280;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-disabled);
   margin-bottom: 1rem;
 
   code {
-    color: var(--council-accent);
+    font-family: var(--font-family-mono);
+    color: var(--color-action-primary);
   }
 }
 
@@ -59,15 +61,15 @@
 
   label {
     display: block;
-    font-size: 0.875rem;
-    color: #9ca3af;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-subtle-on-surface);
     margin-bottom: 0.25rem;
   }
 }
 
 .no-items {
-  font-size: 0.875rem;
-  color: #6b7280;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-disabled);
   font-style: italic;
   margin: 0;
 }

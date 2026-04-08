@@ -10,7 +10,7 @@
   text-align: center;
   max-width: 500px;
   padding: 2rem;
-  border-color: var(--color-error);
+  border-color: color-mix(in oklch, var(--color-status-error) 30%, transparent);
 }
 
 .error-icon {
@@ -19,11 +19,11 @@
 }
 
 h2 {
-  color: var(--color-error);
+  color: var(--color-status-error);
   margin-bottom: 0.5rem;
 }
 
 p {
-  color: var(--color-text-secondary);
+  color: var(--color-text-subtle-on-surface);
   margin-bottom: 1.5rem;
 }

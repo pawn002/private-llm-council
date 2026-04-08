@@ -2,18 +2,18 @@
   display: inline;
 
   .accent {
-    font-weight: 500;
+    font-weight: var(--font-weight-medium);
   }
 
   .text-green {
-    color: #22c55e;
+    color: var(--color-status-success);
   }
 
   .text-yellow {
-    color: #eab308;
+    color: var(--color-status-warning);
   }
 
   .text-red {
-    color: #ef4444;
+    color: var(--color-status-error);
   }
 }

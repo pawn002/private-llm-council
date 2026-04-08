@@ -42,16 +42,16 @@
   width: 12px;
   height: 12px;
   border-radius: 50%;
-  background: var(--council-surface-elevated);
+  background: var(--color-bg-elevated);
   transition: all 0.3s ease;
 
   &.active {
-    background: var(--council-accent);
+    background: var(--color-action-primary);
     transform: scale(1.2);
   }
 
   &.complete {
-    background: var(--council-success);
+    background: var(--color-status-success);
   }
 }
 
@@ -60,11 +60,11 @@
 }
 
 .warning-hint {
-  color: var(--council-warning);
+  color: var(--color-status-warning);
 }
 
 .text-warning {
-  color: var(--council-warning);
+  color: var(--color-status-warning);
 }
 
 .cancel-actions {

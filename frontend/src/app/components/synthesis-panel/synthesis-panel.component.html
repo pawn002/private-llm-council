@@ -89,8 +89,8 @@
             <div class="minority-header">
               <span class="minority-member">{{ report.member_id }}</span>
             </div>
-            <p class="minority-position">{{ report.position }}</p>
-            <p class="minority-rationale">{{ report.rationale }}</p>
+            <div class="minority-position prose" [innerHTML]="report.position | markdown"></div>
+            <div class="minority-rationale prose" [innerHTML]="report.rationale | markdown"></div>
           </div>
         }
       </div>

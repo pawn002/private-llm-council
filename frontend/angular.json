@@ -32,7 +32,7 @@
             "inlineStyleLanguage": "scss",
             "assets": ["src/favicon.ico", "src/assets"],
             "styles": [
-              "node_modules/@candor-design/tokens/tokens/candor-tokens.css",
+              "src/candor-tokens.css",
               "src/styles.scss"
             ],
             "scripts": []
@@ -84,7 +84,7 @@
             "inlineStyleLanguage": "scss",
             "assets": ["src/favicon.ico", "src/assets"],
             "styles": [
-              "node_modules/@candor-design/tokens/tokens/candor-tokens.css",
+              "src/candor-tokens.css",
               "src/styles.scss"
             ],
             "scripts": []

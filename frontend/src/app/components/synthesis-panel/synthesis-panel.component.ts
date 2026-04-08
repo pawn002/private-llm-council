@@ -2,11 +2,12 @@ import { Component, input, computed } from '@angular/core';
 import { Synthesis, Disagreement, MinorityReport } from '../../models';
 import { ConfidenceMeterComponent } from '../confidence-meter/confidence-meter.component';
 import { ListSectionComponent } from '../list-section/list-section.component';
+import { MarkdownPipe } from '../../pipes/markdown.pipe';
 
 @Component({
   selector: 'app-synthesis-panel',
   standalone: true,
-  imports: [ConfidenceMeterComponent, ListSectionComponent],
+  imports: [ConfidenceMeterComponent, ListSectionComponent, MarkdownPipe],
   templateUrl: './synthesis-panel.component.html',
   styleUrls: ['./synthesis-panel.component.scss'],
 })

@@ -12,7 +12,7 @@
 
   @if (isExpanded()) {
     <div class="card-content">
-      <div class="perspective-text">{{ perspective().content }}</div>
+      <div class="perspective-text prose" [innerHTML]="perspective().content | markdown"></div>
       <div class="timestamp">{{ formattedTimestamp() }}</div>
     </div>
   }

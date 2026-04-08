@@ -1,10 +1,12 @@
 import { Component, input, output, computed } from '@angular/core';
 import { Perspective } from '../../models';
 import { getMemberColor, getMemberIcon } from '../../constants';
+import { MarkdownPipe } from '../../pipes/markdown.pipe';
 
 @Component({
   selector: 'app-perspective-card',
   standalone: true,
+  imports: [MarkdownPipe],
   templateUrl: './perspective-card.component.html',
   styleUrls: ['./perspective-card.component.scss'],
 })

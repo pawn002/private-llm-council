@@ -40,7 +40,7 @@ li {
 .bullet {
   flex-shrink: 0;
 
-  &.green  { color: var(--color-status-success); }
-  &.yellow { color: var(--color-status-warning); }
+  &.green  { color: var(--color-status-success-text); }
+  &.yellow { color: var(--color-status-warning-text); }
   &.purple { color: var(--purple-400); }
 }

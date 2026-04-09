@@ -47,7 +47,7 @@
 
 .id-display {
   font-size: var(--font-size-sm);
-  color: var(--color-text-disabled);
+  color: var(--color-text-subtle);
   margin-bottom: 1rem;
 
   code {
@@ -69,18 +69,27 @@
 
 .no-items {
   font-size: var(--font-size-sm);
-  color: var(--color-text-disabled);
+  color: var(--color-text-subtle);
   font-style: italic;
   margin: 0;
 }
 
+// gray-500 (oklch 0.56) — readable on light bg
+$chevron-light: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238f8f8f' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/Svg%3E";
+// gray-400 (oklch 0.71) — readable on dark bg
+$chevron-dark: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b5b5b5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/Svg%3E";
+
 select.input {
   appearance: none;
-  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-image: url($chevron-light);
   background-repeat: no-repeat;
   background-position: right 0.75rem center;
   background-size: 1rem;
   padding-right: 2.5rem;
+
+  :host-context([data-theme=dark]) & {
+    background-image: url($chevron-dark);
+  }
 }
 
 .dialog-actions {

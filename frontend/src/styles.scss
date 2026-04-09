@@ -179,15 +179,29 @@ body {
   background: var(--color-border-control);
 }
 
-/* Common button styles */
+/* Common button styles — aligned to Candor button spec */
 .btn {
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-sm);
-  font-size: var(--font-size-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-button-padding-y) var(--spacing-button-padding-x);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-base);
   font-family: var(--font-family-base);
+  font-weight: var(--font-weight-medium);
+  min-height: 2.5rem;
   cursor: pointer;
-  transition: all 0.2s;
   border: none;
+  text-decoration: none;
+  transition: background-color 0.2s ease-in-out,
+              color 0.2s ease-in-out,
+              border-color 0.2s ease-in-out,
+              opacity 0.2s ease-in-out;
+
+  &:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
 
   &:disabled {
     opacity: 0.5;
@@ -195,32 +209,37 @@ body {
   }
 }
 
+.btn-sm {
+  font-size: var(--font-size-sm);
+  letter-spacing: 0.01em;
+  padding: var(--spacing-button-padding-y-sm) var(--spacing-button-padding-x-sm);
+  min-height: 2rem;
+}
+
 .btn-primary {
   background-color: var(--color-action-primary);
   color: var(--color-text-on-action);
 
-  &:hover:not(:disabled) {
-    background-color: var(--color-action-primary-hover);
-  }
+  &:hover:not(:disabled)  { background-color: var(--color-action-primary-hover); }
+  &:active:not(:disabled) { background-color: var(--color-action-primary-active); }
 }
 
 .btn-secondary {
-  background-color: var(--color-action-tertiary);
-  color: var(--color-action-tertiary-text);
+  background-color: transparent;
+  color: var(--color-action-primary);
+  border: var(--border-width-thin) solid var(--color-action-primary);
 
-  &:hover:not(:disabled) {
-    background-color: var(--color-action-tertiary-hover);
-  }
+  &:hover:not(:disabled)  { background-color: oklch(from var(--color-action-primary) l c h / 0.08); }
+  &:active:not(:disabled) { background-color: oklch(from var(--color-action-primary) l c h / 0.15); }
 }
 
 .btn-danger {
   background-color: var(--color-action-destructive);
   color: var(--color-action-destructive-text);
-  border: 1px solid var(--color-action-destructive-border);
+  border: var(--border-width-thin) solid var(--color-action-destructive-border);
 
-  &:hover:not(:disabled) {
-    background-color: var(--color-action-destructive-hover);
-  }
+  &:hover:not(:disabled)  { background-color: var(--color-action-destructive-hover); }
+  &:active:not(:disabled) { background-color: var(--color-action-destructive-active); }
 }
 
 /* Form inputs */

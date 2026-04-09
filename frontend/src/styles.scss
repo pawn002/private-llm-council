@@ -250,6 +250,7 @@ textarea.input {
 /* Prose content — markdown-rendered long-form text */
 .prose {
   white-space: normal;
+  font-family: var(--font-family-serif);
 
   p {
     margin: 0 0 0.75em;

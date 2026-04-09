@@ -233,6 +233,7 @@
 }
 
 .minority-position {
+  font-family: var(--font-family-serif);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--color-text-default);
@@ -240,6 +241,7 @@
 }
 
 .minority-rationale {
+  font-family: var(--font-family-serif);
   font-size: var(--font-size-sm);
   color: var(--color-text-subtle-on-surface);
   margin: 0.25rem 0 0;

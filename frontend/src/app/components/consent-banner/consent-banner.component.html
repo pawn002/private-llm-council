@@ -2,7 +2,7 @@
   <div class="banner-content">
     <div class="banner-main">
       <div class="banner-info">
-        <span class="mode-icon">{{ modeIcon() }}</span>
+        <i [class]="'mode-icon ' + modeIcon()" aria-hidden="true"></i>
         <div class="mode-details">
           <h2>The Sovereign Council - Privacy First</h2>
           @if (loading()) {
@@ -20,8 +20,8 @@
                   [state]="s.network_status.local_only"
                   trueText="Local Only"
                   falseText="External Detected"
-                  trueClass="text-green"
-                  falseClass="text-yellow"
+                  trueVariant="success"
+                  falseVariant="warning"
                 />
                 <span class="separator">|</span>
                 <app-status-badge
@@ -29,8 +29,8 @@
                   [state]="s.network_status.ollama_reachable"
                   trueText="Connected"
                   falseText="Unavailable"
-                  trueClass="text-green"
-                  falseClass="text-red"
+                  trueVariant="success"
+                  falseVariant="error"
                 />
               </div>
             } @else {
@@ -59,7 +59,7 @@
         <ul>
           @for (warning of status()!.warnings; track warning) {
             <li>
-              <span class="warning-icon">⚠</span>
+              <i class="ph-fill ph-warning warning-icon" aria-hidden="true"></i>
               {{ warning }}
             </li>
           }

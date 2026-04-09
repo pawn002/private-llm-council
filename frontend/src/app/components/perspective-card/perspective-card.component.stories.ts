@@ -3,7 +3,7 @@ import { PerspectiveCardComponent } from './perspective-card.component';
 import { Perspective } from '../../models';
 
 const meta: Meta<PerspectiveCardComponent> = {
-  title: 'Components/PerspectiveCard',
+  title: 'Council/Deliberation/Perspectives/Perspective Card',
   component: PerspectiveCardComponent,
   tags: ['autodocs'],
   argTypes: {

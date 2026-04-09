@@ -30,13 +30,13 @@ export class LoadingStateComponent {
   readonly phases: DeliberationPhase[] = ['gathering', 'reviewing', 'synthesizing', 'analyzing'];
 
   readonly phaseIcons: Record<DeliberationPhase, string> = {
-    idle: '💭',
-    gathering: '🔮',
-    reviewing: '🔍',
-    synthesizing: '⚖️',
-    analyzing: '📊',
-    complete: '✅',
-    error: '❌',
+    idle: 'ph-fill ph-chat-dots',
+    gathering: 'ph-fill ph-users',
+    reviewing: 'ph-fill ph-magnifying-glass',
+    synthesizing: 'ph-fill ph-scales',
+    analyzing: 'ph-fill ph-chart-bar',
+    complete: 'ph-fill ph-check-circle',
+    error: 'ph-fill ph-x-circle',
   };
 
   readonly phaseMessages: Record<DeliberationPhase, string> = {

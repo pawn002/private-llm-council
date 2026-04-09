@@ -1,3 +1,13 @@
+/* Phosphor Icons */
+@import '@phosphor-icons/web/regular';
+@import '@phosphor-icons/web/fill';
+@import '@phosphor-icons/web/bold';
+
+i[class*="ph"] {
+  line-height: 1;
+  vertical-align: middle;
+}
+
 /* Candor Design System — self-hosted fonts */
 
 @font-face {

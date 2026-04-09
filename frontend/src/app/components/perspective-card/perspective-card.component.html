@@ -7,7 +7,7 @@
         <p>{{ perspective().character }} · {{ perspective().model }}</p>
       </div>
     </div>
-    <span class="toggle-icon">{{ isExpanded() ? '▼' : '▶' }}</span>
+    <i [class]="isExpanded() ? 'ph-bold ph-caret-down toggle-icon' : 'ph-bold ph-caret-right toggle-icon'" aria-hidden="true"></i>
   </button>
 
   @if (isExpanded()) {

@@ -1,6 +1,6 @@
 <div class="council-loading">
   <div class="card loading-card">
-    <div class="loading-icon animate-pulse">{{ phaseIcons[phase()] }}</div>
+    <div class="loading-icon animate-pulse"><i [class]="phaseIcons[phase()]" aria-hidden="true"></i></div>
     <h2>{{ phaseMessages[phase()] }}</h2>
     <p>{{ statusMessage() }}</p>
 
@@ -35,7 +35,7 @@
     @if (ollamaBusy()) {
       <div class="ollama-busy-notice">
         <small class="text-info">
-          ⏳ Ollama is processing other requests
+          <i class="ph-fill ph-hourglass" aria-hidden="true"></i> Ollama is processing other requests
         </small>
       </div>
     }

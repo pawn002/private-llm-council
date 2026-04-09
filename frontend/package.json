@@ -21,24 +21,25 @@
     "@angular/platform-browser": "^21.2.8",
     "@angular/platform-browser-dynamic": "^21.2.8",
     "@angular/router": "^21.2.8",
+    "@phosphor-icons/web": "^2.1.2",
     "marked": "^18.0.0",
     "rxjs": "~7.8.0",
     "tslib": "^2.6.0",
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
+    "@angular-devkit/architect": "^0.2102.7",
     "@angular-devkit/build-angular": "^21.2.7",
+    "@angular-devkit/core": "^21.2.7",
     "@angular/cli": "^21.2.7",
     "@angular/compiler-cli": "^21.2.8",
-    "@types/marked": "^5.0.2",
-    "@types/node": "^22.0.0",
-    "typescript": "~5.9.3",
-    "storybook": "^10.3.5",
-    "@storybook/angular": "^10.3.5",
+    "@compodoc/compodoc": "^1.2.1",
     "@storybook/addon-a11y": "^10.3.5",
     "@storybook/addon-docs": "^10.3.5",
-    "@angular-devkit/architect": "^0.2102.7",
-    "@angular-devkit/core": "^21.2.7",
-    "@compodoc/compodoc": "^1.2.1"
+    "@storybook/angular": "^10.3.5",
+    "@types/marked": "^5.0.2",
+    "@types/node": "^22.0.0",
+    "storybook": "^10.3.5",
+    "typescript": "~5.9.3"
   }
 }

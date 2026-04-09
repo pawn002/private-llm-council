@@ -2,7 +2,7 @@
   <div class="card {{ cardClass() }}">
     <h3>
       @if (icon()) {
-        <span>{{ icon() }}</span>
+        <i [class]="icon()" aria-hidden="true"></i>
       }
       {{ title() }}
     </h3>

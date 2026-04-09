@@ -14,16 +14,22 @@
 }
 
 .error-icon {
-  font-size: 4rem;
+  font-size: 3rem;
   margin-bottom: 1rem;
+  color: var(--color-status-error-text);
 }
 
 h2 {
+  font-family: var(--font-family-accessible);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.02em;
   color: var(--color-status-error-text);
   margin-bottom: 0.5rem;
 }
 
 p {
+  font-family: var(--font-family-accessible);
+  letter-spacing: 0.02em;
   color: var(--color-text-subtle-on-surface);
   margin-bottom: 1.5rem;
 }

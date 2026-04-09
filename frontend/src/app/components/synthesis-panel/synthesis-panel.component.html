@@ -2,7 +2,7 @@
   <!-- Main Synthesis -->
   <div class="card synthesis-main">
     <div class="section-header">
-      <span class="header-icon">⚖️</span>
+      <i class="ph-fill ph-scales header-icon" aria-hidden="true"></i>
       <h2>Council Synthesis</h2>
     </div>
 
@@ -27,7 +27,7 @@
   <!-- Consensus Points -->
   <app-list-section
     title="Points of Agreement"
-    icon="✓"
+    icon="ph-fill ph-check"
     [items]="synthesis().consensus_points"
     cardClass="consensus-card"
     bulletColor="green"
@@ -36,7 +36,7 @@
   <!-- Divisions -->
   <app-list-section
     title="Areas of Division"
-    icon="⚡"
+    icon="ph-fill ph-lightning"
     [items]="synthesis().divisions"
     cardClass="divisions-card"
     bulletColor="yellow"
@@ -45,7 +45,7 @@
   <!-- Unique Insights -->
   <app-list-section
     title="Unique Insights"
-    icon="💡"
+    icon="ph-fill ph-lightbulb"
     [items]="synthesis().unique_insights"
     cardClass="insights-card"
     bulletColor="purple"
@@ -54,26 +54,10 @@
   <!-- Disagreements -->
   @if (safeDisagreements().length > 0) {
     <div class="card disagreements-card">
-      <h3><span>🔍</span> Detailed Disagreements</h3>
+      <h3><i class="ph-fill ph-magnifying-glass" aria-hidden="true"></i> Detailed Disagreements</h3>
       <div class="disagreement-list">
         @for (d of safeDisagreements(); track d.topic) {
-          <div class="disagreement-item">
-            <div class="disagreement-header">
-              <h4>{{ d.topic || 'Unnamed disagreement' }}</h4>
-              <span class="severity-badge" [class]="getSeverityClass(d.severity)">
-                {{ d.severity || 'moderate' }}
-              </span>
-            </div>
-            <p class="disagreement-desc">{{ d.description || 'No description available' }}</p>
-            <div class="positions">
-              @for (pos of getPositionEntries(d.positions); track pos.key) {
-                <div class="position">
-                  <span class="position-member">{{ pos.key }}:</span>
-                  <span class="position-text">{{ pos.value }}</span>
-                </div>
-              }
-            </div>
-          </div>
+          <app-disagreement-item [disagreement]="d" />
         }
       </div>
     </div>
@@ -82,16 +66,10 @@
   <!-- Minority Reports -->
   @if (safeMinorityReports().length > 0) {
     <div class="card minority-card">
-      <h3><span>📋</span> Minority Reports</h3>
+      <h3><i class="ph-fill ph-clipboard-text" aria-hidden="true"></i> Minority Reports</h3>
       <div class="minority-list">
         @for (report of safeMinorityReports(); track report.member_id) {
-          <div class="minority-item">
-            <div class="minority-header">
-              <span class="minority-member">{{ report.member_id }}</span>
-            </div>
-            <div class="minority-position prose" [innerHTML]="report.position | markdown"></div>
-            <div class="minority-rationale prose" [innerHTML]="report.rationale | markdown"></div>
-          </div>
+          <app-minority-item [report]="report" />
         }
       </div>
     </div>

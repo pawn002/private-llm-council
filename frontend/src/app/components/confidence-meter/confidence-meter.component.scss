@@ -6,6 +6,9 @@
 
 .meter-label {
   font-size: var(--font-size-xs);
+  font-family: var(--font-family-accessible);
+  font-weight: var(--font-weight-regular);
+  letter-spacing: 0.02em;
   color: var(--color-text-subtle-on-surface);
   width: 6rem;
 }
@@ -31,7 +34,11 @@
 }
 
 .meter-value {
+  // Standalone probability score — Atkinson (not mono) for readability; bold for scan-weight against label
   font-size: var(--font-size-xs);
+  font-family: var(--font-family-accessible);
+  font-weight: var(--font-weight-bold); // Atkinson only has 400/700; semibold silently falls back to 400
+  letter-spacing: 0.02em;
   color: var(--color-text-subtle);
   width: 3rem;
   text-align: right;

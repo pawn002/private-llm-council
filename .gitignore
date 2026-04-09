@@ -74,3 +74,6 @@ secrets.yaml
 # Claude local settings
 .claude/settings.local.json
 
+
+*storybook.log
+storybook-static

@@ -7,9 +7,7 @@
         <p class="member-model">{{ failedMember().model }}</p>
       </div>
     </div>
-    <span class="error-badge" [attr.title]="errorDescription()">
-      {{ errorIcon() }}
-    </span>
+    <i [class]="errorIcon() + ' error-badge'" [attr.title]="errorDescription()" aria-hidden="true"></i>
   </div>
 
   <div class="card-body">

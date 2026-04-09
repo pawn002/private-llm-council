@@ -13,8 +13,9 @@
 }
 
 .loading-icon {
-  font-size: 4rem;
+  font-size: 3rem;
   margin-bottom: 1rem;
+  color: var(--color-action-primary);
 }
 
 .animate-pulse {
@@ -56,10 +57,16 @@
 }
 
 .elapsed-time {
+  // Live elapsed counter — Atkinson for legibility under anxiety (Candor covers static progress labels only)
   margin: 1rem 0;
+  font-family: var(--font-family-accessible);
+  letter-spacing: 0.02em;
 }
 
 .warning-hint {
+  font-family: var(--font-family-accessible);
+  font-weight: var(--font-weight-bold); // Atkinson only has 400/700; semibold silently falls back to 400
+  letter-spacing: 0.02em;
   color: var(--color-status-warning-text);
 }
 

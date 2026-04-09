@@ -1,0 +1,33 @@
+.minority-item {
+  border-left: var(--border-width-medium) solid color-mix(in oklch, var(--color-status-error) 50%, transparent);
+  padding-left: 0.75rem;
+}
+
+.minority-header {
+  margin-bottom: 0.25rem;
+}
+
+.minority-member {
+  // Card metadata header — Atkinson for identity labels atop prose cards (local extension of Candor label pattern)
+  font-size: var(--font-size-lg);
+  font-family: var(--font-family-accessible);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.02em;
+  color: var(--color-status-error-text);
+  text-transform: capitalize;
+}
+
+.minority-position {
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-default);
+  margin: 0;
+}
+
+.minority-rationale {
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-subtle-on-surface);
+  margin: 0.25rem 0 0;
+}

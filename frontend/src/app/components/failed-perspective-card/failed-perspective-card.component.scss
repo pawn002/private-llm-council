@@ -24,14 +24,20 @@
 
       .member-details {
         .member-name {
+          // Card metadata header — Atkinson for identity labels atop prose cards (local extension of Candor label pattern)
           font-size: var(--font-size-base);
-          font-weight: var(--font-weight-semibold);
+          font-family: var(--font-family-accessible);
+          font-weight: var(--font-weight-bold); // Atkinson only has 400/700; semibold silently falls back to 400
+          letter-spacing: 0.02em;
           margin: 0;
           color: var(--color-text-default);
         }
 
         .member-model {
+          // Card metadata header — Atkinson for identity labels atop prose cards (local extension of Candor label pattern)
           font-size: var(--font-size-sm);
+          font-family: var(--font-family-accessible);
+          letter-spacing: 0.02em;
           margin: 0;
           color: var(--color-text-subtle-on-surface);
         }
@@ -46,6 +52,8 @@
   .card-body {
     .error-message {
       font-size: var(--font-size-sm);
+      font-family: var(--font-family-accessible);
+      letter-spacing: 0.02em;
       margin: 0 0 0.5rem 0;
       color: var(--color-text-subtle-on-surface);
 
@@ -56,6 +64,8 @@
 
     .retry-info {
       font-size: var(--font-size-xs);
+      font-family: var(--font-family-accessible);
+      letter-spacing: 0.02em;
       margin: 0;
       color: var(--color-text-subtle);
     }

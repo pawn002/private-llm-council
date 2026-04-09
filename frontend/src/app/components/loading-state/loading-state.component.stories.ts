@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/angular';
 import { LoadingStateComponent } from './loading-state.component';
 
 const meta: Meta<LoadingStateComponent> = {
-  title: 'Components/LoadingState',
+  title: 'Council/Loading',
   component: LoadingStateComponent,
   tags: ['autodocs'],
 };

@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/angular';
 import { ErrorStateComponent } from './error-state.component';
 
 const meta: Meta<ErrorStateComponent> = {
-  title: 'Components/ErrorState',
+  title: 'Council/Error',
   component: ErrorStateComponent,
   tags: ['autodocs'],
 };

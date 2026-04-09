@@ -2,7 +2,7 @@
   <div class="dialog-backdrop" (click)="onClose()">
     <div class="dialog" (click)="$event.stopPropagation()">
       <h2>
-        <span>{{ mode() === 'save' ? '🔐' : '🔓' }}</span>
+        <i [class]="mode() === 'save' ? 'ph-fill ph-lock-key' : 'ph-fill ph-lock-key-open'" aria-hidden="true"></i>
         {{ mode() === 'save' ? 'Encrypt & Save Deliberation' : 'Load Deliberation' }}
       </h2>
 

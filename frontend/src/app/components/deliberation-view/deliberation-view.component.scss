@@ -4,56 +4,6 @@
   gap: 1.5rem;
 }
 
-.question-header {
-  .question-content {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1rem;
-  }
-
-  .question-text {
-    .label {
-      font-size: var(--font-size-xs);
-      color: var(--color-text-subtle);
-      margin: 0 0 0.25rem;
-    }
-
-    h1 {
-      font-size: var(--font-size-lg);
-      font-weight: var(--font-weight-medium);
-      color: var(--color-text-default);
-      margin: 0;
-    }
-
-    .meta {
-      font-size: var(--font-size-xs);
-      color: var(--color-text-subtle);
-      margin: 0.5rem 0 0;
-
-      .warning-badge {
-        color: var(--color-status-warning-text);
-        font-weight: var(--font-weight-semibold);
-        display: inline-flex;
-        align-items: center;
-        gap: 0.25rem;
-      }
-    }
-  }
-
-  .question-actions {
-    display: flex;
-    gap: 0.5rem;
-    flex-shrink: 0;
-
-    .btn {
-      display: flex;
-      align-items: center;
-      gap: 0.25rem;
-    }
-  }
-}
-
 .tabs {
   display: flex;
   border-bottom: var(--border-width-thin) solid var(--color-border-default);
@@ -77,38 +27,5 @@
   &.active {
     color: var(--color-action-primary);
     border-bottom-color: var(--color-action-primary);
-  }
-}
-
-.perspectives-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-
-  .failed-perspectives-section {
-    background: var(--color-status-warning-bg);
-    border: var(--border-width-thin) solid var(--color-status-warning);
-    border-radius: var(--radius-md);
-    padding: var(--spacing-card-padding);
-    margin-bottom: 2rem;
-
-    .section-title {
-      font-size: var(--font-size-lg);
-      font-weight: var(--font-weight-semibold);
-      margin: 0 0 0.5rem 0;
-      color: var(--color-status-warning-text);
-    }
-
-    .section-description {
-      margin: 0 0 1rem 0;
-      color: var(--color-text-subtle-on-surface);
-    }
-  }
-
-  .section-title {
-    font-size: var(--font-size-lg);
-    font-weight: var(--font-weight-semibold);
-    margin: 0 0 1rem 0;
-    color: var(--color-text-default);
   }
 }

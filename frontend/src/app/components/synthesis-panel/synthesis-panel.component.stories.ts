@@ -3,7 +3,7 @@ import { SynthesisPanelComponent } from './synthesis-panel.component';
 import { Synthesis, Disagreement, MinorityReport } from '../../models';
 
 const meta: Meta<SynthesisPanelComponent> = {
-  title: 'Components/SynthesisPanel',
+  title: 'Council/Deliberation/Synthesis',
   component: SynthesisPanelComponent,
   tags: ['autodocs'],
 };

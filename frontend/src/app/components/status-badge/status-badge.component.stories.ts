@@ -2,9 +2,13 @@ import type { Meta, StoryObj } from '@storybook/angular';
 import { StatusBadgeComponent } from './status-badge.component';
 
 const meta: Meta<StatusBadgeComponent> = {
-  title: 'Components/StatusBadge',
+  title: 'App/Consent Banner/Status Badge',
   component: StatusBadgeComponent,
   tags: ['autodocs'],
+  argTypes: {
+    trueVariant: { control: 'select', options: ['success', 'warning', 'error', 'default'] },
+    falseVariant: { control: 'select', options: ['success', 'warning', 'error', 'default'] },
+  },
 };
 export default meta;
 type Story = StoryObj<StatusBadgeComponent>;
@@ -21,8 +25,8 @@ export const BooleanTrue: Story = {
     state: true,
     trueText: 'Connected',
     falseText: 'Unavailable',
-    trueClass: 'text-green',
-    falseClass: 'text-red',
+    trueVariant: 'success',
+    falseVariant: 'error',
   },
 };
 
@@ -33,8 +37,8 @@ export const BooleanFalse: Story = {
     state: false,
     trueText: 'Connected',
     falseText: 'Unavailable',
-    trueClass: 'text-green',
-    falseClass: 'text-red',
+    trueVariant: 'success',
+    falseVariant: 'error',
   },
 };
 
@@ -45,7 +49,7 @@ export const NetworkWarning: Story = {
     state: false,
     trueText: 'Local Only',
     falseText: 'External Detected',
-    trueClass: 'text-green',
-    falseClass: 'text-yellow',
+    trueVariant: 'success',
+    falseVariant: 'warning',
   },
 };

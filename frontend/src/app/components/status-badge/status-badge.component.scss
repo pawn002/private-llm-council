@@ -1,19 +1,43 @@
 .status-badge {
-  display: inline;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
 
-  .accent {
-    font-weight: var(--font-weight-medium);
+  .badge-label {
+    color: var(--color-text-subtle);
+    font-size: var(--font-size-sm);
   }
 
-  .text-green {
-    color: var(--color-status-success-text);
-  }
+  .badge-value {
+    display: inline-flex;
+    align-items: center;
+    border-radius: var(--radius-full);
+    font-family: var(--font-family-accessible);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold); // Atkinson only has 400/700; semibold silently falls back to 400
+    letter-spacing: 0.06em;
+    line-height: var(--line-height-tight);
+    white-space: nowrap;
+    padding: 0.2rem 0.55rem;
 
-  .text-yellow {
-    color: var(--color-status-warning-text);
-  }
+    &.variant-default {
+      background-color: var(--color-bg-surface);
+      color: var(--color-text-subtle-on-surface);
+    }
 
-  .text-red {
-    color: var(--color-status-error-text);
+    &.variant-success {
+      background-color: var(--color-status-success-bg);
+      color: var(--color-status-success-text);
+    }
+
+    &.variant-warning {
+      background-color: var(--color-status-warning-bg);
+      color: var(--color-status-warning-text);
+    }
+
+    &.variant-error {
+      background-color: var(--color-status-error-bg);
+      color: var(--color-status-error-text);
+    }
   }
 }

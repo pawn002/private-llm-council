@@ -45,6 +45,7 @@
 }
 
 .disagreement-desc {
+  font-family: var(--font-family-serif); // AI-generated content — serif per prose/UI split
   font-size: var(--font-size-sm);
   color: var(--color-text-subtle-on-surface);
   margin: 0 0 0.5rem;
@@ -69,5 +70,6 @@
 }
 
 .position-text {
+  font-family: var(--font-family-serif); // AI-generated content — serif per prose/UI split
   color: var(--color-text-subtle);
 }

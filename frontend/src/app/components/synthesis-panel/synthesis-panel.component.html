@@ -11,7 +11,12 @@
     <!-- Confidence Score -->
     @if (synthesis().confidence; as confidence) {
       <div class="confidence-section">
-        <h3>Confidence Assessment</h3>
+        <h3>
+          Confidence Assessment
+          <button class="info-trigger" (click)="showConfidenceInfo.set(true)" aria-label="About confidence scores">
+            <i class="ph ph-info" aria-hidden="true"></i>
+          </button>
+        </h3>
         <div class="confidence-meters">
           <app-confidence-meter label="Synthesis Quality" [value]="confidence.overall" />
           <app-confidence-meter
@@ -50,6 +55,37 @@
     cardClass="insights-card"
     bulletColor="purple"
   />
+
+  <!-- Confidence info modal -->
+  <app-modal
+    [open]="showConfidenceInfo()"
+    title="Understanding Confidence Scores"
+    size="sm"
+    (closed)="showConfidenceInfo.set(false)"
+  >
+    <p>The confidence assessment is produced by a second LLM call — a separate model evaluates the synthesis after it has been written, based on how many council members responded and how strongly they disagreed.</p>
+
+    <h4>Synthesis Quality</h4>
+    <p>How much you should trust the synthesis. High means the council converged — perspectives agreed and the synthesis reliably represents the group's view. Low means the council was divided enough that the synthesis may be glossing over genuine conflict.</p>
+
+    <h4>Dissent Strength</h4>
+    <p>How strongly minority positions held their ground. High means there are meaningful alternative views not folded into the synthesis — check the Minority Reports section. Low means dissent was weak or absent.</p>
+
+    <h4>Reading them together</h4>
+    <table class="confidence-table">
+      <thead>
+        <tr><th>Synthesis Quality</th><th>Dissent Strength</th><th>Read as</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>High</td><td>Low</td><td>Strong consensus — trust the synthesis</td></tr>
+        <tr><td>High</td><td>High</td><td>Coherent synthesis, but meaningful dissent — check Minority Reports</td></tr>
+        <tr><td>Low</td><td>High</td><td>Genuinely divided council — treat synthesis as one view, not a conclusion</td></tr>
+        <tr><td>Low</td><td>Low</td><td>Thin or low-quality response set</td></tr>
+      </tbody>
+    </table>
+
+    <p class="confidence-caveat">Note: this is a model assessing another model's output — treat scores as approximate signals, not precise measurements.</p>
+  </app-modal>
 
   <!-- Disagreements -->
   @if (safeDisagreements().length > 0) {

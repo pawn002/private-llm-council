@@ -1,11 +1,12 @@
 import { Component, input, output, effect, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../services/api.service';
+import { ModalComponent } from '../modal/modal.component';
 
 @Component({
   selector: 'app-save-load-dialog',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, ModalComponent],
   templateUrl: './save-load-dialog.component.html',
   styleUrls: ['./save-load-dialog.component.scss'],
 })

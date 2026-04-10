@@ -27,7 +27,7 @@ export class LoadingStateComponent {
   readonly cancel = output<void>();
 
   /** Phases in order for progress indicator */
-  readonly phases: DeliberationPhase[] = ['gathering', 'reviewing', 'synthesizing', 'analyzing'];
+  readonly phases: DeliberationPhase[] = ['gathering', 'reviewing', 'analyzing', 'synthesizing'];
 
   readonly phaseIcons: Record<DeliberationPhase, string> = {
     idle: 'ph-fill ph-chat-dots',

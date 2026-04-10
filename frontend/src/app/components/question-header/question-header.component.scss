@@ -15,6 +15,7 @@
   }
 
   h1 {
+    font-family: var(--font-family-serif); // user-authored question — serif per prose/UI split
     font-size: var(--font-size-lg);
     font-weight: var(--font-weight-medium);
     color: var(--color-text-default);

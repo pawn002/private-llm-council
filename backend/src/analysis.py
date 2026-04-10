@@ -445,7 +445,10 @@ class DeliberationAnalyzer:
                 )
             elif line.startswith("MEMBER:"):
                 if current_report:
-                    current_report.member_id = extract_value(line)
+                    value = extract_value(line)
+                    # Reject bare numbers — small models sometimes echo the MINORITY_REPORTS count
+                    if not value.isdigit():
+                        current_report.member_id = value
             elif line.startswith("POSITION:"):
                 if current_report:
                     current_report.position = extract_value(line)

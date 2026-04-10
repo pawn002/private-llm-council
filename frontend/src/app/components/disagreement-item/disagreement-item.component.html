@@ -5,7 +5,9 @@
       {{ disagreement().severity || 'moderate' }}
     </span>
   </div>
-  <p class="disagreement-desc">{{ disagreement().description || 'No description available' }}</p>
+  @if (disagreement().description) {
+    <p class="disagreement-desc">{{ disagreement().description }}</p>
+  }
   <div class="positions">
     @for (pos of positions(); track pos.key) {
       <div class="position">

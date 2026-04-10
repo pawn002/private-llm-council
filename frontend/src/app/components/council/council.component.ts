@@ -31,7 +31,7 @@ export class CouncilComponent {
 
   readonly isLoading = computed(() => {
     const phase = this.state().phase;
-    return ['gathering', 'reviewing', 'synthesizing', 'analyzing'].includes(phase);
+    return ['gathering', 'reviewing', 'analyzing', 'synthesizing'].includes(phase);
   });
 
   onQuestionSubmitted(question: string): void {

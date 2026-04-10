@@ -27,6 +27,8 @@
 
   textarea {
     min-height: 6rem;
+    font-family: var(--font-family-serif); // user-authored text — serif per prose/UI split
+    font-size: var(--font-size-base);
   }
 }
 

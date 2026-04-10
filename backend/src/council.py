@@ -609,7 +609,7 @@ Please provide your synthesis.""",
             synthesis = Synthesis(
                 content=response.content,
                 consensus_points=[],  # Would parse from response
-                divisions=[d.topic for d in disagreements],
+                divisions=list(dict.fromkeys(d.topic for d in disagreements)),
                 unique_insights=[],  # Would parse from response
             )
 
@@ -631,7 +631,7 @@ Please provide your synthesis.""",
                 synthesis = Synthesis(
                     content=f"[Synthesized by fallback model: {fallback_model}]\n\n{response.content}",
                     consensus_points=[],
-                    divisions=[d.topic for d in disagreements],
+                    divisions=list(dict.fromkeys(d.topic for d in disagreements)),
                     unique_insights=[],
                 )
                 return synthesis, []

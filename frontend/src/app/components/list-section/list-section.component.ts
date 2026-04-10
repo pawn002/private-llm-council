@@ -1,8 +1,10 @@
 import { Component, input, computed } from '@angular/core';
+import { MarkdownPipe } from '../../pipes/markdown.pipe';
 
 @Component({
   selector: 'app-list-section',
   standalone: true,
+  imports: [MarkdownPipe],
   templateUrl: './list-section.component.html',
   styleUrls: ['./list-section.component.scss'],
 })

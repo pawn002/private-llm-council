@@ -6,9 +6,11 @@ import { marked } from 'marked';
 export class MarkdownPipe implements PipeTransform {
   private sanitizer = inject(DomSanitizer);
 
-  transform(value: string | null | undefined): SafeHtml {
+  transform(value: string | null | undefined, inline = false): SafeHtml {
     if (!value) return '';
-    const html = marked.parse(value) as string;
+    const html = inline
+      ? marked.parseInline(value) as string
+      : marked.parse(value) as string;
     return this.sanitizer.sanitize(2 /* SecurityContext.HTML */, html) ?? '';
   }
 }

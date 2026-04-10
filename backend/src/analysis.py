@@ -124,6 +124,32 @@ IMPORTANT: For each position, write the actual substantive viewpoint that member
 (repeat for each disagreement, or write NONE if all perspectives agree)
 """
 
+CONSENSUS_INSIGHTS_PROMPT = """You are extracting structured summaries from a council deliberation.
+
+Question: {question}
+
+Individual Perspectives:
+{perspectives}
+
+Synthesis:
+{synthesis}
+
+List the points where council members genuinely agreed, and the distinctive ideas that only one or two members raised.
+
+CONSENSUS_POINTS:
+- <one point of genuine agreement>
+- <another point>
+
+UNIQUE_INSIGHTS:
+- <a distinctive idea not shared by most members>
+- <another distinctive idea>
+
+Rules:
+- Write only bullet lines under each header. No other text.
+- Write NONE under a header if nothing applies.
+- Keep each bullet to one concise sentence.
+"""
+
 MINORITY_REPORT_PROMPT = """You are identifying minority positions that deserve attention.
 
 In a council deliberation, the synthesis represents the majority/consensus view.
@@ -465,6 +491,68 @@ class DeliberationAnalyzer:
             reports.append(current_report)
 
         return reports
+
+    async def extract_consensus_and_insights(
+        self,
+        question: str,
+        perspectives: list[Perspective],
+        synthesis: str,
+    ) -> tuple[list[str], list[str]]:
+        """Extract consensus points and unique insights via a dedicated LLM call.
+
+        Returns (consensus_points, unique_insights).
+        """
+        if not perspectives:
+            return [], []
+
+        perspectives_text = format_perspectives_for_prompt(perspectives, include_character=False)
+        prompt = CONSENSUS_INSIGHTS_PROMPT.format(
+            question=question,
+            perspectives=perspectives_text,
+            synthesis=synthesis,
+        )
+
+        try:
+            response = await self.gateway.complete(
+                model=self.analysis_model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=Temperature.ANALYTICAL,
+            )
+            return self._parse_consensus_insights(response.content)
+        except Exception as e:
+            logger.warning("Failed to extract consensus/insights: %s", e)
+            return [], []
+
+    def _parse_consensus_insights(self, response: str) -> tuple[list[str], list[str]]:
+        """Parse CONSENSUS_POINTS and UNIQUE_INSIGHTS bullet lists from a response."""
+        consensus_points: list[str] = []
+        unique_insights: list[str] = []
+
+        current_section: str | None = None
+
+        for line in response.splitlines():
+            stripped = line.strip()
+            if not stripped:
+                continue
+
+            if "CONSENSUS_POINTS" in stripped:
+                current_section = "consensus"
+            elif "UNIQUE_INSIGHTS" in stripped:
+                current_section = "insights"
+            elif stripped.startswith("- ") and current_section:
+                text = stripped[2:].strip()
+                if text and text.upper() != "NONE":
+                    if current_section == "consensus":
+                        consensus_points.append(text)
+                    elif current_section == "insights":
+                        unique_insights.append(text)
+
+        logger.info(
+            "Consensus/insights extraction — %d consensus points, %d unique insights",
+            len(consensus_points),
+            len(unique_insights),
+        )
+        return consensus_points, unique_insights
 
     def _parse_confidence(self, response: str) -> ConfidenceAssessment:
         """Parse confidence assessment response."""

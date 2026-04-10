@@ -10,7 +10,7 @@
       @for (item of safeItems(); track item) {
         <li>
           <span class="bullet {{ bulletColor() }}">•</span>
-          {{ item }}
+          <span [innerHTML]="item | markdown:true"></span>
         </li>
       }
     </ul>

@@ -1,0 +1,174 @@
+.article {
+    display: block;
+    max-width: 65ch;
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-relaxed);
+    color: var(--color-text-default);
+
+    &.article--font-reading { font-family: var(--font-family-serif); }   // Noto Serif — primary editorial voice
+    &.article--font-sans    { font-family: var(--font-family-reading); } // Noto Sans — syndication/utility fallback
+
+    // Headings — structural voice (Roboto Flex), tight rhythm
+    h1, h2, h3, h4, h5, h6 {
+        font-family: var(--font-family-display);
+        font-weight: var(--font-weight-bold);
+        font-optical-sizing: auto; // Roboto Flex opsz axis — stroke weight scales naturally with size
+        line-height: var(--line-height-tight);
+        color: var(--color-text-default);
+        margin-top: var(--spacing-xl);
+        margin-bottom: var(--spacing-sm);
+
+        &:first-child { margin-top: 0; }
+    }
+
+    h1 { font-size: var(--font-size-h1); letter-spacing: var(--letter-spacing-tight); }
+    h2 { font-size: var(--font-size-h2); letter-spacing: var(--letter-spacing-tight); }
+    h3 { font-size: var(--font-size-h3); letter-spacing: var(--letter-spacing-tight); }
+    h4 { font-size: var(--font-size-h4); }
+    h5 { font-size: var(--font-size-base); margin-top: var(--spacing-lg); }  // floor at 16px; reduced top margin
+    h6 { font-size: 0.875rem;              margin-top: var(--spacing-md); }  // floor at 14px; reduced top margin
+
+    // Paragraphs
+    p {
+        margin-bottom: var(--spacing-md);
+        &:last-child { margin-bottom: 0; }
+    }
+
+    // Lists
+    ul, ol {
+        margin-bottom: var(--spacing-md);
+        padding-left: var(--spacing-md);
+    }
+    li { margin-bottom: var(--spacing-xs); }
+
+    // Blockquote
+    blockquote {
+        border-left: var(--border-width-thick) solid var(--color-blockquote-border);
+        margin: var(--spacing-lg) 0;
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-style: italic;
+        letter-spacing: var(--letter-spacing-italic);
+        color: var(--color-blockquote-text);
+        background-color: var(--color-blockquote-bg);
+        border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    }
+
+    // Inline code
+    code {
+        font-family: var(--font-family-mono);
+        font-size: 0.875em;
+        background-color: var(--color-bg-surface);
+        padding: 0.1em 0.35em;
+        border-radius: var(--radius-sm);
+        color: var(--color-highlight);
+    }
+
+    // Code blocks
+    pre {
+        font-family: var(--font-family-mono);
+        font-size: 0.875rem; // 14px — min legible size for code
+        line-height: var(--line-height-normal);
+        background-color: var(--color-bg-code);
+        color: var(--color-text-code);
+        border: var(--border-width-thin) solid var(--color-border-code);
+        padding: var(--spacing-md);
+        border-radius: var(--radius-md);
+        overflow-x: auto;
+        margin-bottom: var(--spacing-md);
+
+        code {
+            background: none;
+            padding: 0;
+            font-size: 1em; // don't double-scale — inherits 14px from pre
+            color: inherit;
+            border-radius: 0;
+        }
+    }
+
+    // Links
+    a {
+        color: var(--color-link);
+        text-decoration: underline;
+        text-underline-offset: 0.2em;
+
+        &:visited { color: var(--color-link-visited); }
+        &:hover   { color: var(--color-link-hover); }
+
+        &:focus-visible {
+            outline: var(--focus-ring-width) solid var(--color-focus);
+            outline-offset: var(--focus-ring-offset);
+            border-radius: var(--radius-sm);
+        }
+    }
+
+    // Horizontal rule
+    hr {
+        border: none;
+        border-top: var(--border-width-thin) solid var(--color-border-default);
+        margin: var(--spacing-xl) 0;
+    }
+
+    // Strong / em
+    strong { font-weight: var(--font-weight-bold); }
+    em { font-style: italic; letter-spacing: var(--letter-spacing-italic); }
+
+    // Abbreviations
+    abbr[title] {
+        text-decoration: underline dotted;
+        cursor: help;
+    }
+
+    // Figures
+    figure {
+        margin: var(--spacing-lg) 0;
+
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            border-radius: var(--radius-md);
+        }
+
+        figcaption {
+            font-size: var(--font-size-sm); // 14px floor
+            color: var(--color-text-subtle);
+            margin-top: var(--spacing-xs);
+            font-style: italic;
+            letter-spacing: 0.03em; // 14px italic needs more air than the 0.02em body baseline
+        }
+    }
+
+    // Tables
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: var(--spacing-md);
+
+        th, td {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            text-align: left;
+            border-bottom: var(--border-width-thin) solid var(--color-border-default);
+        }
+
+        td {
+            font-variant-numeric: tabular-nums; // fixed-width figures for numeric alignment
+        }
+
+        // Numeric columns — right-align + Roboto Mono for number-heavy tables.
+        // Apply to both th and td so header aligns with its column data.
+        th.numeric,
+        td.numeric {
+            font-family: var(--font-family-mono);
+            text-align: right;
+        }
+
+        thead th {
+            font-weight: var(--font-weight-bold);
+            border-bottom: var(--border-width-medium) solid var(--color-border-strong);
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+    }
+}

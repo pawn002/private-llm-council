@@ -6,11 +6,13 @@ import { MarkdownPipe } from '../../pipes/markdown.pipe';
 import { DisagreementItemComponent } from '../disagreement-item/disagreement-item.component';
 import { MinorityItemComponent } from '../minority-item/minority-item.component';
 import { ModalComponent } from '../modal/modal.component';
+import { ArticleComponent } from '../typography/article/article.component';
+import { TableComponent } from '../table/table.component';
 
 @Component({
   selector: 'app-synthesis-panel',
   standalone: true,
-  imports: [ConfidenceMeterComponent, ListSectionComponent, MarkdownPipe, DisagreementItemComponent, MinorityItemComponent, ModalComponent],
+  imports: [ConfidenceMeterComponent, ListSectionComponent, MarkdownPipe, DisagreementItemComponent, MinorityItemComponent, ModalComponent, ArticleComponent, TableComponent],
   templateUrl: './synthesis-panel.component.html',
   styleUrls: ['./synthesis-panel.component.scss'],
 })

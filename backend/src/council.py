@@ -9,6 +9,7 @@ Implements the three-stage deliberation process:
 
 import asyncio
 import logging
+import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
@@ -58,6 +59,75 @@ def format_perspectives_for_prompt(
         f"### {p.member_id}\n{p.content}"
         for p in perspectives
     )
+
+
+def _parse_synthesis_response(raw: str) -> tuple[str, list[str], list[str]]:
+    """Split the chairman's structured response into prose content, consensus points, and unique insights.
+
+    Returns (content, consensus_points, unique_insights).
+
+    Tolerant of model variation: markers matched anywhere in the response as long
+    as the keyword appears at the start of a line (ignores leading markdown decoration
+    like **, ##, or whitespace).
+    """
+    consensus_points: list[str] = []
+    unique_insights: list[str] = []
+
+    # Strip leading "Synthesis:" header that small models tend to prepend
+    raw = re.sub(r"(?i)^synthesis:\s*\n?", "", raw.lstrip())
+
+    logger.info("Synthesis raw response (first 600 chars): %s", raw[:600])
+
+    # Match the keyword at line-start, allowing optional markdown decoration before it
+    # and anything (including inline content) after the colon.
+    consensus_match = re.search(r"(?m)^[*#\s]*CONSENSUS_POINTS[:\s]", raw)
+    insights_match = re.search(r"(?m)^[*#\s]*UNIQUE_INSIGHTS[:\s]", raw)
+
+    consensus_start = consensus_match.start() if consensus_match else -1
+    insights_start = insights_match.start() if insights_match else -1
+
+    logger.info(
+        "Synthesis parse — consensus_start=%d, insights_start=%d",
+        consensus_start,
+        insights_start,
+    )
+
+    first_marker = min(
+        consensus_start if consensus_start != -1 else len(raw),
+        insights_start if insights_start != -1 else len(raw),
+    )
+    content = raw[:first_marker].strip()
+
+    # Fallback: model ignored the format entirely — show the full response as prose
+    if not content:
+        logger.warning("Synthesis parser found no prose before markers — using full response as content")
+        content = raw.strip()
+
+    def parse_bullets(start: int, end: int) -> list[str]:
+        items = []
+        for line in raw[start:end].splitlines():
+            line = line.strip()
+            if line.startswith("- "):
+                text = line[2:].strip()
+                if text:
+                    items.append(text)
+        return items
+
+    if consensus_start != -1:
+        end = insights_start if insights_start > consensus_start else len(raw)
+        consensus_points = parse_bullets(consensus_start, end)
+
+    if insights_start != -1:
+        end = consensus_start if consensus_start > insights_start else len(raw)
+        unique_insights = parse_bullets(insights_start, end)
+
+    logger.info(
+        "Synthesis parse result — consensus=%d items, insights=%d items",
+        len(consensus_points),
+        len(unique_insights),
+    )
+
+    return content, consensus_points, unique_insights
 
 
 @dataclass
@@ -295,6 +365,19 @@ class CouncilOrchestrator:
                 pass  # Keep basic minority reports on error
 
         deliberation.minority_reports = minority_reports
+
+        # Extract consensus points and unique insights if analyzer available
+        if analyzer:
+            if on_status:
+                on_status("Extracting consensus and insights...")
+            try:
+                consensus_points, unique_insights = await analyzer.extract_consensus_and_insights(
+                    question, perspectives, synthesis.content
+                )
+                deliberation.synthesis.consensus_points = consensus_points
+                deliberation.synthesis.unique_insights = unique_insights
+            except Exception:
+                pass  # Leave as empty lists on error
 
         # Assess confidence if analyzer available
         if analyzer:
@@ -577,13 +660,11 @@ Rank the responses from best to worst and explain your reasoning briefly for eac
         system_prompt = """You are the Chairman of a deliberation council. Your role is to synthesize multiple perspectives into a coherent final response.
 
 Your responsibilities:
-1. Identify points of consensus
-2. Acknowledge and preserve disagreements - do not smooth them over
-3. Highlight unique insights from individual perspectives
-4. Produce a synthesis that respects the full range of views
-5. Include a "minority report" section if any perspective was significantly outvoted
+1. Acknowledge and preserve disagreements — do not smooth them over
+2. Produce a synthesis that respects the full range of views
+3. Be direct and honest about division when the council is divided
 
-You are a synthesizer, not an arbiter of truth. If the council is divided, say so honestly."""
+You are a synthesizer, not an arbiter of truth. Write in flowing prose only — no headers, no bullet points."""
 
         messages = [
             {"role": "system", "content": system_prompt},
@@ -606,11 +687,12 @@ Please provide your synthesis.""",
                 temperature=self.config.chairman.temperature if self.config.chairman else 0.3,
             )
 
+            content, consensus_points, unique_insights = _parse_synthesis_response(response.content)
             synthesis = Synthesis(
-                content=response.content,
-                consensus_points=[],  # Would parse from response
+                content=content,
+                consensus_points=consensus_points,  # filled later by analyzer
                 divisions=list(dict.fromkeys(d.topic for d in disagreements)),
-                unique_insights=[],  # Would parse from response
+                unique_insights=unique_insights,    # filled later by analyzer
             )
 
             # Generate minority reports for outvoted perspectives
@@ -628,11 +710,12 @@ Please provide your synthesis.""",
                     messages=messages,
                     temperature=Temperature.ANALYSIS,
                 )
+                content, consensus_points, unique_insights = _parse_synthesis_response(response.content)
                 synthesis = Synthesis(
-                    content=f"[Synthesized by fallback model: {fallback_model}]\n\n{response.content}",
-                    consensus_points=[],
+                    content=f"[Synthesized by fallback model: {fallback_model}]\n\n{content}",
+                    consensus_points=consensus_points,
                     divisions=list(dict.fromkeys(d.topic for d in disagreements)),
-                    unique_insights=[],
+                    unique_insights=unique_insights,
                 )
                 return synthesis, []
             raise

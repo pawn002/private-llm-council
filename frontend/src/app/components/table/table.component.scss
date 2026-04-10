@@ -1,0 +1,138 @@
+.table-host {
+    display: block;
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+
+        th,
+        td {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            text-align: left;
+            border-bottom: var(--border-width-thin) solid var(--color-border-strong);
+            font-family: var(--font-family-accessible);
+            font-size: var(--font-size-sm);
+            color: var(--color-text-default);
+            letter-spacing: 0.02em;
+        }
+
+        th {
+            font-weight: var(--font-weight-bold);
+        }
+
+        thead th {
+            color: var(--color-text-subtle-on-surface);
+            font-weight: var(--font-weight-bold);
+            border-bottom: var(--border-width-medium) solid var(--color-border-strong);
+        }
+
+        td {
+            font-variant-numeric: tabular-nums;
+        }
+
+        // Numeric columns — mono + right-align for value-heavy columns
+        th.numeric,
+        td.numeric {
+            font-family: var(--font-family-mono);
+            text-align: right;
+            letter-spacing: 0;
+        }
+
+        // Label column (left side of key-value tables)
+        td.label {
+            color: var(--color-text-subtle-on-surface);
+        }
+
+        // Zebra striping — even rows at deltaE 11 from white in light mode;
+        // dark mode override uses bg-elevated (L=0.30) so text remains readable.
+        tbody tr:nth-child(even) td,
+        tbody tr:nth-child(even) th {
+            background: oklch(0.85 0 0);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            tbody tr:nth-child(even) td,
+            tbody tr:nth-child(even) th {
+                // Relative-lightness stripe — always visibly lighter than the surface,
+                // regardless of whether the table sits on bg-surface or bg-elevated.
+                background: color-mix(in oklch, white 15%, var(--color-bg-elevated));
+            }
+        }
+
+        [data-theme="dark"] & {
+            tbody tr:nth-child(even) td,
+            tbody tr:nth-child(even) th {
+                background: color-mix(in oklch, white 15%, var(--color-bg-elevated));
+            }
+        }
+
+        [data-theme="light"] & {
+            tbody tr:nth-child(even) td,
+            tbody tr:nth-child(even) th {
+                background: oklch(0.85 0 0);
+            }
+        }
+
+        tbody tr:last-child td {
+            border-bottom: none;
+        }
+    }
+
+    // ─── Compact variant ─────────────────────────────────────────────────────
+
+    &--compact {
+        table {
+            th,
+            td {
+                padding: 0.25rem var(--spacing-sm);
+            }
+
+            // Compact starts with the stripe on row 1 (odd) instead of row 2
+            tbody tr:nth-child(even) td,
+            tbody tr:nth-child(even) th {
+                background: transparent;
+            }
+
+            tbody tr:nth-child(odd) td,
+            tbody tr:nth-child(odd) th {
+                background: oklch(0.85 0 0);
+            }
+
+            @media (prefers-color-scheme: dark) {
+                tbody tr:nth-child(even) td,
+                tbody tr:nth-child(even) th {
+                    background: transparent;
+                }
+
+                tbody tr:nth-child(odd) td,
+                tbody tr:nth-child(odd) th {
+                    background: color-mix(in oklch, white 15%, var(--color-bg-elevated));
+                }
+            }
+
+            [data-theme="dark"] & {
+                tbody tr:nth-child(even) td,
+                tbody tr:nth-child(even) th {
+                    background: transparent;
+                }
+
+                tbody tr:nth-child(odd) td,
+                tbody tr:nth-child(odd) th {
+                    background: color-mix(in oklch, white 15%, var(--color-bg-elevated));
+                }
+            }
+
+            [data-theme="light"] & {
+                tbody tr:nth-child(even) td,
+                tbody tr:nth-child(even) th {
+                    background: transparent;
+                }
+
+                tbody tr:nth-child(odd) td,
+                tbody tr:nth-child(odd) th {
+                    background: oklch(0.85 0 0);
+                }
+            }
+        }
+    }
+}

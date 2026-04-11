@@ -74,3 +74,6 @@ warn_unused_configs = true
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+markers = [
+    "integration: requires a live Ollama instance (deselect with -m 'not integration')",
+]

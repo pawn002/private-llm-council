@@ -74,6 +74,14 @@ secrets.yaml
 # Claude local settings
 .claude/settings.local.json
 
+# Playwright MCP browser session artifacts
+.playwright-mcp/
+
+# Debug/probe screenshots
+*.png
+*.jpg
+*.jpeg
+
 
 *storybook.log
 storybook-static

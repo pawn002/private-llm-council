@@ -228,6 +228,17 @@ class CouncilOrchestrator:
     The council should argue, not agree. Dissent is preserved, not suppressed.
     """
 
+    _CHAIRMAN_SYSTEM_PROMPT = """You are the Chairman of a deliberation council. Write a tight synthesis that directly answers the question.
+
+Rules:
+- Open with a clear, direct answer or position — no preamble, no "the council considered..."
+- Do NOT write a paragraph per member. Do NOT use "From [name]'s perspective" or "According to [name]"
+- Name real tensions where they exist; do not paper over disagreement
+- Write as if advising the specific person who asked — concrete, not generic
+- 3 to 5 sentences total. Flowing prose only — no headers, no bullets
+- Forbidden: "A synthesis of", "In conclusion", "It's essential to consider", "multiple factors", "various perspectives", "it's important to note"
+"""
+
     def __init__(
         self,
         gateway: InferenceGateway,
@@ -657,17 +668,8 @@ Rank the responses from best to worst and explain your reasoning briefly for eac
                 f"- {d.topic}: {d.description}" for d in disagreements
             )
 
-        system_prompt = """You are the Chairman of a deliberation council. Your role is to synthesize multiple perspectives into a coherent final response.
-
-Your responsibilities:
-1. Acknowledge and preserve disagreements — do not smooth them over
-2. Produce a synthesis that respects the full range of views
-3. Be direct and honest about division when the council is divided
-
-You are a synthesizer, not an arbiter of truth. Write in flowing prose only — no headers, no bullet points."""
-
         messages = [
-            {"role": "system", "content": system_prompt},
+            {"role": "system", "content": self._CHAIRMAN_SYSTEM_PROMPT},
             {
                 "role": "user",
                 "content": f"""Question: {question}
@@ -676,7 +678,7 @@ Council Perspectives:
 {perspectives_text}
 {disagreements_text}
 
-Please provide your synthesis.""",
+Give a direct synthesis that answers the question.""",
             },
         ]
 

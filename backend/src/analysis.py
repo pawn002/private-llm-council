@@ -140,6 +140,7 @@ Perspectives:
 {perspectives}
 
 Write a bullet list of shared conclusions — ideas everyone or almost everyone expressed.
+Only include ideas that are directly stated in the perspectives above. Do not add, infer, or invent anything not present in the text.
 Do NOT include member names. Write the shared idea itself, not who said it.
 Use "- " bullets. One sentence per bullet. Write "- NONE" if nothing was shared.
 Only output the bullet list."""
@@ -151,9 +152,11 @@ Question: {question}
 Perspectives:
 {perspectives}
 
-Write a bullet list of distinctive ideas that appear in only one perspective.
-Do NOT include member names. Write the distinctive idea itself, not who said it.
-Use "- " bullets. One sentence per bullet. Write "- NONE" if there are no unique insights.
+Write a bullet list of distinctive ideas that appear in only one perspective and not in the others.
+Only include ideas that are directly stated in the perspectives above. Do not add, infer, or invent anything not present in the text.
+Do NOT mention member names — write the idea itself, not who said it.
+If all perspectives say essentially the same thing, write "- NONE".
+Use "- " bullets. One sentence per bullet.
 Only output the bullet list."""
 
 MINORITY_REPORT_PROMPT = """You are identifying minority positions that deserve attention.
@@ -214,11 +217,31 @@ REASONING: <explanation>
 """
 
 
-def _parse_bullet_list(response: str) -> list[str]:
+def _strip_member_affixes(text: str, member_ids: set[str]) -> str:
+    """Strip member-ID prefix or suffix from bullet text.
+
+    Handles: 'phi: idea', 'phi - idea', 'idea - phi', 'idea (phi)'
+    """
+    lower = text.lower()
+    for mid in member_ids:
+        m = mid.lower()
+        # Prefixes
+        for sep in (f"{m}: ", f"{m} - "):
+            if lower.startswith(sep):
+                return text[len(sep):].strip()
+        # Suffixes
+        for sep in (f" - {m}", f" ({m})", f", {m}"):
+            if lower.endswith(sep):
+                return text[: len(text) - len(sep)].strip()
+    return text
+
+
+def _parse_bullet_list(response: str, member_ids: set[str] | None = None) -> list[str]:
     """Extract bullet items from a response that contains only a bullet list.
 
     Accepts both '- ' and '• ' prefixes. Excludes NONE sentinels, member-name
-    labels (short text ending with ':'), and blank items.
+    labels (short text ending with ':' or ' - '), and blank items.
+    Strips member-ID prefixes (e.g. 'phi - Some idea') when member_ids is provided.
     """
     items = []
     for line in response.splitlines():
@@ -227,11 +250,17 @@ def _parse_bullet_list(response: str) -> list[str]:
             text = stripped[2:].strip()
             if not text:
                 continue
-            if text.upper() == "NONE":
+            if text.strip("- ").upper() == "NONE":
                 continue
-            # Skip labels like "Phi:" or "Member Name:" — model echoing group headers
-            if text.endswith(":") or (len(text) <= 20 and ":" in text):
+            # Skip bare labels: "Phi:" or "phi - " with nothing substantive after
+            if text.endswith(":") or text.endswith(" -"):
                 continue
+            # Skip very short colon-prefixed labels like "phi: " (model echoing names as headers)
+            if len(text) <= 20 and (":" in text or " - " in text):
+                continue
+            # Strip member-name prefix/suffix if we know the IDs: "phi - idea" → "idea"
+            if member_ids:
+                text = _strip_member_affixes(text, member_ids)
             items.append(text)
     return items
 
@@ -570,8 +599,9 @@ class DeliberationAnalyzer:
             logger.info("Consensus raw:\n%s", consensus_resp.content[:400])
             logger.info("Insights raw:\n%s", insights_resp.content[:400])
 
-            consensus_points = _parse_bullet_list(consensus_resp.content)
-            unique_insights = _parse_bullet_list(insights_resp.content)
+            member_ids = {p.member_id for p in perspectives}
+            consensus_points = _parse_bullet_list(consensus_resp.content, member_ids)
+            unique_insights = _parse_bullet_list(insights_resp.content, member_ids)
 
             logger.info(
                 "Consensus/insights extraction — %d consensus points, %d unique insights",

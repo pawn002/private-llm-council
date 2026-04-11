@@ -1,9 +1,7 @@
 import { Component, input, computed } from '@angular/core';
 
-/**
- * Reusable status badge component for displaying labeled status values
- * with conditional styling based on boolean state.
- */
+export type StatusVariant = 'success' | 'warning' | 'error' | 'default';
+
 @Component({
   selector: 'app-status-badge',
   standalone: true,
@@ -11,31 +9,25 @@ import { Component, input, computed } from '@angular/core';
   styleUrls: ['./status-badge.component.scss'],
 })
 export class StatusBadgeComponent {
-  /** Label displayed before the status value */
   readonly label = input.required<string>();
 
-  /** The status value to display (for simple text display) */
+  /** The status value to display (text-only mode) */
   readonly value = input<string>('');
 
-  /** Boolean state for conditional display (optional) */
+  /** Boolean state (boolean mode). When null, renders as text-only. */
   readonly state = input<boolean | null>(null);
 
-  /** Text to display when state is true */
   readonly trueText = input<string>('Yes');
-
-  /** Text to display when state is false */
   readonly falseText = input<string>('No');
 
-  /** CSS class for true state */
-  readonly trueClass = input<string>('text-green');
+  /** Candor status variant applied when state is true */
+  readonly trueVariant = input<StatusVariant>('success');
 
-  /** CSS class for false state */
-  readonly falseClass = input<string>('text-red');
+  /** Candor status variant applied when state is false */
+  readonly falseVariant = input<StatusVariant>('error');
 
-  /** Whether this is a boolean-based status (vs simple text) */
   readonly isBooleanStatus = computed(() => this.state() !== null);
 
-  /** The display text based on mode */
   readonly displayText = computed(() => {
     if (this.state() !== null) {
       return this.state() ? this.trueText() : this.falseText();
@@ -43,9 +35,10 @@ export class StatusBadgeComponent {
     return this.value();
   });
 
-  /** The CSS class based on state */
-  readonly stateClass = computed(() => {
-    if (this.state() === null) return 'accent';
-    return this.state() ? this.trueClass() : this.falseClass();
+  readonly badgeClass = computed(() => {
+    const variant = this.state() === null
+      ? 'variant-default'
+      : `variant-${this.state() ? this.trueVariant() : this.falseVariant()}`;
+    return `badge-value ${variant}`;
   });
 }

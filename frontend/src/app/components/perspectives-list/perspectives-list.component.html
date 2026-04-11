@@ -1,0 +1,26 @@
+<div class="perspectives-list">
+  @if (failedMembers().length) {
+    <div class="failed-perspectives-section">
+      <h3 class="section-title"><i class="ph-fill ph-warning" aria-hidden="true"></i> Missing Perspectives</h3>
+      <p class="section-description">
+        {{ failedMembers().length }} council member(s) failed to provide perspectives:
+      </p>
+      @for (failed of failedMembers(); track failed.member_id) {
+        <app-failed-perspective-card [failedMember]="failed" />
+      }
+    </div>
+  }
+
+  @if (perspectives().length) {
+    @if (failedMembers().length) {
+      <h3 class="section-title">Received Perspectives</h3>
+    }
+    @for (perspective of perspectives(); track perspective.member_id) {
+      <app-perspective-card
+        [perspective]="perspective"
+        [isExpanded]="expandedPerspective() === perspective.member_id"
+        (toggle)="togglePerspective(perspective.member_id)"
+      />
+    }
+  }
+</div>

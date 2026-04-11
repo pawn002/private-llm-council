@@ -224,6 +224,7 @@ class TestDeliberationSerializer:
                     rationale="Focus on experience instead",
                 ),
             ],
+            failed_members=[],
             timestamp=Deliberation.empty("").timestamp,
             session_id="session-123",
         )

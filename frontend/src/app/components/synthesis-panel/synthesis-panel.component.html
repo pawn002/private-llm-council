@@ -2,16 +2,21 @@
   <!-- Main Synthesis -->
   <div class="card synthesis-main">
     <div class="section-header">
-      <span class="header-icon">⚖️</span>
+      <i class="ph-fill ph-scales header-icon" aria-hidden="true"></i>
       <h2>Council Synthesis</h2>
     </div>
 
-    <div class="synthesis-content">{{ synthesis().content }}</div>
+    <div class="synthesis-content prose" [innerHTML]="synthesis().content | markdown"></div>
 
     <!-- Confidence Score -->
     @if (synthesis().confidence; as confidence) {
       <div class="confidence-section">
-        <h3>Confidence Assessment</h3>
+        <h3>
+          Confidence Assessment
+          <button class="info-trigger" (click)="showConfidenceInfo.set(true)" aria-label="About confidence scores">
+            <i class="ph ph-info" aria-hidden="true"></i>
+          </button>
+        </h3>
         <div class="confidence-meters">
           <app-confidence-meter label="Synthesis Quality" [value]="confidence.overall" />
           <app-confidence-meter
@@ -26,8 +31,8 @@
 
   <!-- Consensus Points -->
   <app-list-section
-    title="Points of Agreement"
-    icon="✓"
+    heading="Points of Agreement"
+    icon="ph-fill ph-check"
     [items]="synthesis().consensus_points"
     cardClass="consensus-card"
     bulletColor="green"
@@ -35,8 +40,8 @@
 
   <!-- Divisions -->
   <app-list-section
-    title="Areas of Division"
-    icon="⚡"
+    heading="Areas of Division"
+    icon="ph-fill ph-lightning"
     [items]="synthesis().divisions"
     cardClass="divisions-card"
     bulletColor="yellow"
@@ -44,36 +49,55 @@
 
   <!-- Unique Insights -->
   <app-list-section
-    title="Unique Insights"
-    icon="💡"
+    heading="Unique Insights"
+    icon="ph-fill ph-lightbulb"
     [items]="synthesis().unique_insights"
     cardClass="insights-card"
     bulletColor="purple"
   />
 
+  <!-- Confidence info modal -->
+  <app-modal
+    [open]="showConfidenceInfo()"
+    title="Understanding Confidence Scores"
+    size="sm"
+    (closed)="showConfidenceInfo.set(false)"
+  >
+    <app-article font="sans">
+      <p>The confidence assessment is produced by a second LLM call — a separate model evaluates the synthesis after it has been written, based on how many council members responded and how strongly they disagreed.</p>
+
+      <h4>Synthesis Quality</h4>
+      <p>How much you should trust the synthesis. High means the council converged — perspectives agreed and the synthesis reliably represents the group's view. Low means the council was divided enough that the synthesis may be glossing over genuine conflict.</p>
+
+      <h4>Dissent Strength</h4>
+      <p>How strongly minority positions held their ground. High means there are meaningful alternative views not folded into the synthesis — check the Minority Reports section. Low means dissent was weak or absent.</p>
+
+      <h4>Reading them together</h4>
+      <app-table [compact]="true">
+        <table>
+          <thead>
+            <tr><th>Synthesis Quality</th><th>Dissent Strength</th><th>Read as</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>High</td><td>Low</td><td>Strong consensus — trust the synthesis</td></tr>
+            <tr><td>High</td><td>High</td><td>Coherent synthesis, but meaningful dissent — check Minority Reports</td></tr>
+            <tr><td>Low</td><td>High</td><td>Genuinely divided council — treat synthesis as one view, not a conclusion</td></tr>
+            <tr><td>Low</td><td>Low</td><td>Thin or low-quality response set</td></tr>
+          </tbody>
+        </table>
+      </app-table>
+
+      <p class="confidence-caveat">Note: this is a model assessing another model's output — treat scores as approximate signals, not precise measurements.</p>
+    </app-article>
+  </app-modal>
+
   <!-- Disagreements -->
   @if (safeDisagreements().length > 0) {
     <div class="card disagreements-card">
-      <h3><span>🔍</span> Detailed Disagreements</h3>
+      <h3><i class="ph-fill ph-magnifying-glass" aria-hidden="true"></i> Detailed Disagreements</h3>
       <div class="disagreement-list">
         @for (d of safeDisagreements(); track d.topic) {
-          <div class="disagreement-item">
-            <div class="disagreement-header">
-              <h4>{{ d.topic || 'Unnamed disagreement' }}</h4>
-              <span class="severity-badge" [class]="getSeverityClass(d.severity)">
-                {{ d.severity || 'moderate' }}
-              </span>
-            </div>
-            <p class="disagreement-desc">{{ d.description || 'No description available' }}</p>
-            <div class="positions">
-              @for (pos of getPositionEntries(d.positions); track pos.key) {
-                <div class="position">
-                  <span class="position-member">{{ pos.key }}:</span>
-                  <span class="position-text">{{ pos.value }}</span>
-                </div>
-              }
-            </div>
-          </div>
+          <app-disagreement-item [disagreement]="d" />
         }
       </div>
     </div>
@@ -82,16 +106,10 @@
   <!-- Minority Reports -->
   @if (safeMinorityReports().length > 0) {
     <div class="card minority-card">
-      <h3><span>📋</span> Minority Reports</h3>
+      <h3><i class="ph-fill ph-clipboard-text" aria-hidden="true"></i> Minority Reports</h3>
       <div class="minority-list">
         @for (report of safeMinorityReports(); track report.member_id) {
-          <div class="minority-item">
-            <div class="minority-header">
-              <span class="minority-member">{{ report.member_id }}</span>
-            </div>
-            <p class="minority-position">{{ report.position }}</p>
-            <p class="minority-rationale">{{ report.rationale }}</p>
-          </div>
+          <app-minority-item [report]="report" />
         }
       </div>
     </div>

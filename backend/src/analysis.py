@@ -8,6 +8,7 @@ no external NLP services that might phone home.
 Philosophy: The council understands itself through its own intelligence.
 """
 
+import asyncio
 import logging
 from dataclasses import dataclass
 from enum import Enum
@@ -96,33 +97,67 @@ class ConfidenceAssessment:
     reasoning: str
 
 
-DISAGREEMENT_ANALYSIS_PROMPT = """You are analyzing a council deliberation to identify disagreements.
+DISAGREEMENT_ANALYSIS_PROMPT = """Read these perspectives and find cases where members give OPPOSITE recommendations.
 
-Given multiple perspectives on a question, identify:
-1. Points where perspectives fundamentally conflict (not just different emphasis)
-2. The nature of each disagreement (values, facts, reasoning, priorities)
-3. The severity: MINOR (emphasis), MODERATE (reasoning differs), FUNDAMENTAL (incompatible)
+A disagreement only counts when:
+- One member recommends doing X
+- Another member recommends NOT doing X, or recommends the opposite
+
+If their advice could both be followed, or if they are on different topics, it is NOT a disagreement.
+If you are not certain their positions are opposite, write DISAGREEMENT_COUNT: 0.
+
+Severity:
+- FUNDAMENTAL: following one member's advice makes it impossible to follow the other's
+- MODERATE: the recommendations pull in opposite directions but are not mutually exclusive
+- MINOR: same overall direction, meaningfully different emphasis
+
+Members: {member_names}
 
 Question: {question}
 
 Perspectives:
 {perspectives}
 
-Respond in this exact format:
+Format (use the actual member names from above, not the word "member_name"):
 DISAGREEMENT_COUNT: <number>
 
 DISAGREEMENT_1:
-TOPIC: brief topic description here
+TOPIC: <what they disagree about, in 5 words or fewer>
 SEVERITY: MINOR or MODERATE or FUNDAMENTAL
 POSITIONS:
-- member_name: write their actual specific position on this topic in your own words
-- member_name: write their actual specific position on this topic in your own words
-IMPLICATIONS: explain what this disagreement means for the user making this decision
+- <first member name>: <their specific recommendation>
+- <second member name>: <their opposing recommendation>
+IMPLICATIONS: <what this means for the person asking>
 
-IMPORTANT: For each position, write the actual substantive viewpoint that member holds. Do NOT use placeholder text like "their position" or "view" - describe what they actually said about this topic.
-
-(repeat for each disagreement, or write NONE if all perspectives agree)
+(only include disagreements where the positions are genuinely opposite)
 """
+
+CONSENSUS_POINTS_PROMPT = """Read these perspectives and identify what all or most members agreed on.
+
+Question: {question}
+
+Perspectives:
+{perspectives}
+
+Write a bullet list of shared conclusions — ideas everyone or almost everyone expressed.
+Only include ideas that are directly stated in the perspectives above. Do not add, infer, or invent anything not present in the text.
+Do NOT include member names. Write the shared idea itself, not who said it.
+Use "- " bullets. One sentence per bullet. Write "- NONE" if nothing was shared.
+Only output the bullet list."""
+
+UNIQUE_INSIGHTS_PROMPT = """Read these perspectives and identify ideas that only one member raised.
+
+Question: {question}
+
+Perspectives:
+{perspectives}
+
+Write a bullet list of distinctive ideas that appear in only one perspective and not in the others.
+Only include ideas that are directly stated in the perspectives above. Do not add, infer, or invent anything not present in the text.
+Do NOT mention member names — write the idea itself, not who said it.
+If all perspectives say essentially the same thing, write "- NONE".
+Use "- " bullets. One sentence per bullet.
+Only output the bullet list."""
 
 MINORITY_REPORT_PROMPT = """You are identifying minority positions that deserve attention.
 
@@ -182,6 +217,54 @@ REASONING: <explanation>
 """
 
 
+def _strip_member_affixes(text: str, member_ids: set[str]) -> str:
+    """Strip member-ID prefix or suffix from bullet text.
+
+    Handles: 'phi: idea', 'phi - idea', 'idea - phi', 'idea (phi)'
+    """
+    lower = text.lower()
+    for mid in member_ids:
+        m = mid.lower()
+        # Prefixes
+        for sep in (f"{m}: ", f"{m} - "):
+            if lower.startswith(sep):
+                return text[len(sep):].strip()
+        # Suffixes
+        for sep in (f" - {m}", f" ({m})", f", {m}"):
+            if lower.endswith(sep):
+                return text[: len(text) - len(sep)].strip()
+    return text
+
+
+def _parse_bullet_list(response: str, member_ids: set[str] | None = None) -> list[str]:
+    """Extract bullet items from a response that contains only a bullet list.
+
+    Accepts both '- ' and '• ' prefixes. Excludes NONE sentinels, member-name
+    labels (short text ending with ':' or ' - '), and blank items.
+    Strips member-ID prefixes (e.g. 'phi - Some idea') when member_ids is provided.
+    """
+    items = []
+    for line in response.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("- ") or stripped.startswith("• "):
+            text = stripped[2:].strip()
+            if not text:
+                continue
+            if text.strip("- ").upper() == "NONE":
+                continue
+            # Skip bare labels: "Phi:" or "phi - " with nothing substantive after
+            if text.endswith(":") or text.endswith(" -"):
+                continue
+            # Skip very short colon-prefixed labels like "phi: " (model echoing names as headers)
+            if len(text) <= 20 and (":" in text or " - " in text):
+                continue
+            # Strip member-name prefix/suffix if we know the IDs: "phi - idea" → "idea"
+            if member_ids:
+                text = _strip_member_affixes(text, member_ids)
+            items.append(text)
+    return items
+
+
 class DeliberationAnalyzer:
     """
     Analyzes council deliberations to extract deeper insights.
@@ -221,10 +304,12 @@ class DeliberationAnalyzer:
 
         # Format perspectives for analysis
         perspectives_text = format_perspectives_for_prompt(perspectives)
+        member_names = " and ".join(p.member_id for p in perspectives)
 
         prompt = DISAGREEMENT_ANALYSIS_PROMPT.format(
             question=question,
             perspectives=perspectives_text,
+            member_names=member_names,
         )
 
         response = await self.gateway.complete(
@@ -412,7 +497,6 @@ class DeliberationAnalyzer:
         # Don't forget the last one
         if current_disagreement and current_disagreement.topic:
             current_disagreement.positions = current_positions
-            # Only add if we have actual positions (not all placeholders)
             if current_positions:
                 disagreements.append(current_disagreement)
             else:
@@ -420,7 +504,15 @@ class DeliberationAnalyzer:
                     f"Disagreement '{current_disagreement.topic}' had no valid positions (all were placeholders)"
                 )
 
-        return disagreements
+        # Discard disagreements with fewer than 2 distinct member positions —
+        # single-position "disagreements" are a model formatting failure, not real conflicts.
+        valid = [d for d in disagreements if len(d.positions) >= 2]
+        if len(valid) < len(disagreements):
+            logger.warning(
+                "Dropped %d disagreement(s) with fewer than 2 positions",
+                len(disagreements) - len(valid),
+            )
+        return valid
 
     def _parse_minority_reports(self, response: str) -> list[MinorityReport]:
         """Parse minority report extraction response."""
@@ -445,7 +537,10 @@ class DeliberationAnalyzer:
                 )
             elif line.startswith("MEMBER:"):
                 if current_report:
-                    current_report.member_id = extract_value(line)
+                    value = extract_value(line)
+                    # Reject bare numbers — small models sometimes echo the MINORITY_REPORTS count
+                    if not value.isdigit():
+                        current_report.member_id = value
             elif line.startswith("POSITION:"):
                 if current_report:
                     current_report.position = extract_value(line)
@@ -462,6 +557,92 @@ class DeliberationAnalyzer:
             reports.append(current_report)
 
         return reports
+
+    async def extract_consensus_and_insights(
+        self,
+        question: str,
+        perspectives: list[Perspective],
+        synthesis: str,
+    ) -> tuple[list[str], list[str]]:
+        """Extract consensus points and unique insights via a dedicated LLM call.
+
+        Returns (consensus_points, unique_insights).
+        """
+        if not perspectives:
+            return [], []
+
+        perspectives_text = format_perspectives_for_prompt(perspectives, include_character=False)
+
+        try:
+            consensus_prompt = CONSENSUS_POINTS_PROMPT.format(
+                question=question,
+                perspectives=perspectives_text,
+            )
+            insights_prompt = UNIQUE_INSIGHTS_PROMPT.format(
+                question=question,
+                perspectives=perspectives_text,
+            )
+
+            consensus_resp, insights_resp = await asyncio.gather(
+                self.gateway.complete(
+                    model=self.analysis_model,
+                    messages=[{"role": "user", "content": consensus_prompt}],
+                    temperature=Temperature.ANALYSIS,
+                ),
+                self.gateway.complete(
+                    model=self.analysis_model,
+                    messages=[{"role": "user", "content": insights_prompt}],
+                    temperature=Temperature.ANALYSIS,
+                ),
+            )
+
+            logger.info("Consensus raw:\n%s", consensus_resp.content[:400])
+            logger.info("Insights raw:\n%s", insights_resp.content[:400])
+
+            member_ids = {p.member_id for p in perspectives}
+            consensus_points = _parse_bullet_list(consensus_resp.content, member_ids)
+            unique_insights = _parse_bullet_list(insights_resp.content, member_ids)
+
+            logger.info(
+                "Consensus/insights extraction — %d consensus points, %d unique insights",
+                len(consensus_points),
+                len(unique_insights),
+            )
+            return consensus_points, unique_insights
+        except Exception as e:
+            logger.warning("Failed to extract consensus/insights: %s", e)
+            return [], []
+
+    def _parse_consensus_insights(self, response: str) -> tuple[list[str], list[str]]:
+        """Parse CONSENSUS_POINTS and UNIQUE_INSIGHTS sections from a single response.
+
+        Handles mixed-case and markdown-headed section labels produced by small models.
+        """
+        consensus_points: list[str] = []
+        unique_insights: list[str] = []
+
+        current_section: str | None = None
+
+        for line in response.splitlines():
+            stripped = line.strip()
+            if not stripped:
+                continue
+
+            # Normalize header: lowercase, strip markdown decoration (#, *, _), collapse separators
+            normalized = stripped.lower().lstrip("#*_ ").replace("_", " ")
+            if normalized.startswith("consensus point"):
+                current_section = "consensus"
+            elif normalized.startswith("unique insight"):
+                current_section = "insights"
+            elif (stripped.startswith("- ") or stripped.startswith("• ")) and current_section:
+                text = stripped[2:].strip()
+                if text and text.upper() != "NONE":
+                    if current_section == "consensus":
+                        consensus_points.append(text)
+                    elif current_section == "insights":
+                        unique_insights.append(text)
+
+        return consensus_points, unique_insights
 
     def _parse_confidence(self, response: str) -> ConfidenceAssessment:
         """Parse confidence assessment response."""

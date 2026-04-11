@@ -5,9 +5,9 @@
 }
 
 .card {
-  background-color: var(--council-surface);
-  border: 1px solid var(--council-border);
-  border-radius: 0.5rem;
+  background-color: var(--color-bg-surface);
+  border: var(--border-width-thin) solid var(--color-border-default);
+  border-radius: var(--radius-md);
   padding: 1rem;
 }
 
@@ -26,30 +26,62 @@
   }
 
   h2 {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: white;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-default);
     margin: 0;
   }
 }
 
 .synthesis-content {
-  color: #d1d5db;
-  white-space: pre-wrap;
-  line-height: 1.6;
+  font-family: var(--font-family-serif);
+  color: var(--color-text-default);
+  line-height: var(--line-height-relaxed);
 }
 
 .confidence-section {
   margin-top: 1.5rem;
   padding-top: 1rem;
-  border-top: 1px solid var(--council-border);
+  border-top: var(--border-width-thin) solid var(--color-border-default);
 
   h3 {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #9ca3af;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-subtle-on-surface);
     margin: 0 0 0.75rem;
+    display: flex;
+    align-items: center;
   }
+}
+
+.info-trigger {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.125rem 0.25rem;
+  margin-left: 0.25rem;
+  border: none;
+  background: transparent;
+  color: var(--color-text-subtle);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  line-height: 1;
+  transition: color 0.2s;
+
+  &:hover { color: var(--color-text-default); }
+  &:focus-visible {
+    outline: var(--focus-ring-width) solid var(--color-focus);
+    outline-offset: var(--focus-ring-offset);
+  }
+}
+
+// Confidence info modal content — typography handled by app-article
+
+.confidence-caveat {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
+  font-style: italic;
+  margin: 0.75rem 0 0;
 }
 
 .confidence-meters {
@@ -65,16 +97,16 @@
 }
 
 .meter-label {
-  font-size: 0.75rem;
-  color: #9ca3af;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle-on-surface);
   width: 6rem;
 }
 
 .meter-track {
   flex: 1;
   height: 0.5rem;
-  background-color: var(--council-border);
-  border-radius: 9999px;
+  background-color: var(--color-border-default);
+  border-radius: var(--radius-full);
   overflow: hidden;
 }
 
@@ -82,45 +114,46 @@
   height: 100%;
   transition: width 0.3s ease;
 
-  &.bg-green { background-color: #22c55e; }
-  &.bg-yellow { background-color: #eab308; }
-  &.bg-red { background-color: #ef4444; }
+  &.bg-green  { background-color: var(--color-status-success); }
+  &.bg-yellow { background-color: var(--color-status-warning); }
+  &.bg-red    { background-color: var(--color-status-error); }
 }
 
 .meter-value {
-  font-size: 0.75rem;
-  color: #d1d5db;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
   width: 3rem;
   text-align: right;
 }
 
 .confidence-reasoning {
   margin-top: 0.5rem;
-  font-size: 0.75rem;
-  color: #6b7280;
+  font-family: var(--font-family-serif);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-subtle);
   font-style: italic;
 }
 
-.consensus-card { border-color: rgba(34, 197, 94, 0.3); }
-.divisions-card { border-color: rgba(234, 179, 8, 0.3); }
-.insights-card { border-color: rgba(168, 85, 247, 0.3); }
-.disagreements-card { border-color: var(--council-border); }
-.minority-card { border-color: rgba(239, 68, 68, 0.3); }
+.consensus-card    { border-color: color-mix(in oklch, var(--color-status-success) 40%, transparent); }
+.divisions-card    { border-color: color-mix(in oklch, var(--color-status-warning) 40%, transparent); }
+.insights-card     { border-color: color-mix(in oklch, var(--purple-500) 40%, transparent); }
+.disagreements-card { border-color: var(--color-border-default); }
+.minority-card     { border-color: color-mix(in oklch, var(--color-status-error) 40%, transparent); }
 
 .card h3 {
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
   margin: 0 0 0.5rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-.consensus-card h3 { color: #4ade80; }
-.divisions-card h3 { color: #facc15; }
-.insights-card h3 { color: #c084fc; }
-.disagreements-card h3 { color: #9ca3af; }
-.minority-card h3 { color: #f87171; }
+.consensus-card h3    { color: var(--color-status-success-text); }
+.divisions-card h3    { color: var(--color-status-warning-text); }
+.insights-card h3     { color: var(--purple-400); }
+.disagreements-card h3 { color: var(--color-text-subtle-on-surface); }
+.minority-card h3     { color: var(--color-status-error-text); }
 
 .card ul {
   list-style: none;
@@ -132,16 +165,16 @@
   display: flex;
   align-items: flex-start;
   gap: 0.5rem;
-  font-size: 0.875rem;
-  color: #d1d5db;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-subtle);
   margin-bottom: 0.25rem;
 }
 
 .bullet {
   flex-shrink: 0;
-  &.green { color: #22c55e; }
-  &.yellow { color: #eab308; }
-  &.purple { color: #a855f7; }
+  &.green  { color: var(--color-status-success-text); }
+  &.yellow { color: var(--color-status-warning-text); }
+  &.purple { color: var(--purple-400); }
 }
 
 .disagreement-list,
@@ -149,98 +182,4 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
-}
-
-.disagreement-item,
-.minority-item {
-  border-left: 2px solid var(--council-border);
-  padding-left: 0.75rem;
-}
-
-.minority-item {
-  border-left-color: rgba(239, 68, 68, 0.5);
-}
-
-.disagreement-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.25rem;
-
-  h4 {
-    font-weight: 500;
-    color: white;
-    margin: 0;
-    font-size: 0.875rem;
-  }
-}
-
-.severity-badge {
-  padding: 0.125rem 0.5rem;
-  font-size: 0.75rem;
-  border-radius: 0.25rem;
-
-  &.severity-minor {
-    background-color: rgba(59, 130, 246, 0.2);
-    color: #93c5fd;
-  }
-
-  &.severity-moderate {
-    background-color: rgba(234, 179, 8, 0.2);
-    color: #fde047;
-  }
-
-  &.severity-fundamental {
-    background-color: rgba(239, 68, 68, 0.2);
-    color: #fca5a5;
-  }
-}
-
-.disagreement-desc {
-  font-size: 0.875rem;
-  color: #9ca3af;
-  margin: 0 0 0.5rem;
-}
-
-.positions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.position {
-  font-size: 0.875rem;
-}
-
-.position-member {
-  color: var(--council-accent);
-  text-transform: capitalize;
-}
-
-.position-text {
-  color: #d1d5db;
-}
-
-.minority-header {
-  margin-bottom: 0.25rem;
-}
-
-.minority-member {
-  font-size: 1.125rem;
-  font-family: serif;
-  color: #f87171;
-  text-transform: capitalize;
-}
-
-.minority-position {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: white;
-  margin: 0;
-}
-
-.minority-rationale {
-  font-size: 0.875rem;
-  color: #9ca3af;
-  margin: 0.25rem 0 0;
 }

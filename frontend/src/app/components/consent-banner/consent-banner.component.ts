@@ -35,16 +35,12 @@ export class ConsentBannerComponent {
 
   readonly modeIcon = computed(() => {
     const s = this.status();
-    if (!s) return '?';
+    if (!s) return 'ph-fill ph-shield';
     switch (s.mode.mode) {
-      case 'SOVEREIGN':
-        return '🏰';
-      case 'SANCTUARY':
-        return '🛡️';
-      case 'CITADEL':
-        return '🐳';
-      default:
-        return '?';
+      case 'SOVEREIGN': return 'ph-fill ph-castle';
+      case 'SANCTUARY': return 'ph-fill ph-shield';
+      case 'CITADEL':   return 'ph-fill ph-lock-laminated';
+      default:          return 'ph-fill ph-shield';
     }
   });
 

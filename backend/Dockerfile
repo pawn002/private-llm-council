@@ -17,12 +17,16 @@ COPY backend/pyproject.toml .
 COPY backend/src/__init__.py src/
 COPY README.md ../README.md
 
-# Install Python dependencies
+# Install Python dependencies (including dev extras for pytest/probe scripts)
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir .
+    pip install --no-cache-dir ".[dev]"
 
 # Copy application code
 COPY backend/src/ src/
+
+# Copy test suite and probe scripts (volume-mounted in docker-compose for live edits)
+COPY backend/tests/ tests/
+COPY backend/scripts/ scripts/
 
 # Create data directory for persistent storage
 RUN mkdir -p /app/data && chown -R council:council /app

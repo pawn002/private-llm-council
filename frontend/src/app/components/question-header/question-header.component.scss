@@ -1,0 +1,54 @@
+.question-content {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.question-text {
+  .label {
+    font-size: var(--font-size-xs);
+    font-family: var(--font-family-accessible);
+    letter-spacing: 0.02em;
+    color: var(--color-text-subtle);
+    margin: 0 0 0.25rem;
+  }
+
+  h1 {
+    font-family: var(--font-family-serif); // user-authored question — serif per prose/UI split
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-default);
+    margin: 0;
+  }
+
+  .meta {
+    font-size: var(--font-size-xs);
+    font-family: var(--font-family-accessible);
+    letter-spacing: 0.02em;
+    color: var(--color-text-subtle);
+    margin: 0.5rem 0 0;
+
+    .warning-badge {
+      font-family: var(--font-family-accessible);
+      font-weight: var(--font-weight-bold); // Atkinson only has 400/700; semibold silently falls back to 400
+      letter-spacing: 0.02em;
+      color: var(--color-status-warning-text);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+  }
+}
+
+.question-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+
+  .btn {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+}

@@ -1,0 +1,19 @@
+<div class="disagreement-item">
+  <div class="disagreement-header">
+    <h4>{{ disagreement().topic || 'Unnamed disagreement' }}</h4>
+    <span class="severity-badge" [class]="severityClass()">
+      {{ disagreement().severity || 'moderate' }}
+    </span>
+  </div>
+  @if (disagreement().description) {
+    <p class="disagreement-desc">{{ disagreement().description }}</p>
+  }
+  <div class="positions">
+    @for (pos of positions(); track pos.key) {
+      <div class="position">
+        <span class="position-member">{{ pos.key }}:</span>
+        <span class="position-text"> {{ pos.value }}</span>
+      </div>
+    }
+  </div>
+</div>

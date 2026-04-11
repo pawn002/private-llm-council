@@ -1,0 +1,75 @@
+.disagreement-item {
+  border-left: var(--border-width-medium) solid var(--color-border-default);
+  padding-left: 0.75rem;
+}
+
+.disagreement-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+
+  h4 {
+    font-family: var(--font-family-accessible);
+    font-weight: var(--font-weight-regular); // Atkinson only has 400/700; semibold silently falls back to 400
+    letter-spacing: 0.02em;
+    color: var(--color-text-default);
+    margin: 0;
+    font-size: var(--font-size-sm);
+  }
+}
+
+.severity-badge {
+  // Custom severity scale — Atkinson because terms read for semantic content, not just color
+  padding: 0.125rem 0.5rem;
+  font-size: var(--font-size-xs);
+  font-family: var(--font-family-accessible);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.02em;
+  border-radius: var(--radius-sm);
+
+  &.severity-minor {
+    background-color: color-mix(in oklch, var(--azure-400) 20%, transparent);
+    color: var(--color-link);
+  }
+
+  &.severity-moderate {
+    background-color: var(--color-status-warning-bg);
+    color: var(--color-status-warning-text);
+  }
+
+  &.severity-fundamental {
+    background-color: var(--color-status-error-bg);
+    color: var(--color-status-error-text);
+  }
+}
+
+.disagreement-desc {
+  font-family: var(--font-family-serif); // AI-generated content — serif per prose/UI split
+  font-size: var(--font-size-sm);
+  color: var(--color-text-subtle-on-surface);
+  margin: 0 0 0.5rem;
+}
+
+.positions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.position {
+  font-size: var(--font-size-sm);
+}
+
+.position-member {
+  font-family: var(--font-family-accessible);
+  font-weight: var(--font-weight-bold); // Atkinson only has 400/700; semibold silently falls back to 400
+  letter-spacing: 0.02em;
+  color: var(--color-action-primary);
+  text-transform: capitalize;
+}
+
+.position-text {
+  font-family: var(--font-family-serif); // AI-generated content — serif per prose/UI split
+  color: var(--color-text-subtle);
+}

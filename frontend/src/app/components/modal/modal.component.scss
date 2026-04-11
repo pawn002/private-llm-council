@@ -1,0 +1,113 @@
+dialog.modal {
+  // Reset browser defaults
+  border: none;
+  padding: 0;
+  background: transparent;
+  max-width: none;
+  max-height: none;
+  overflow: visible;
+  // Explicit centering — browser defaults for showModal() aren't consistent
+  position: fixed;
+  inset: 0;
+  margin: auto;
+
+  // Backdrop — uses native ::backdrop for top-layer support
+  &::backdrop {
+    background: var(--color-overlay);
+    backdrop-filter: blur(2px);
+  }
+}
+
+// All modal sub-elements scoped under dialog.modal to prevent
+// ViewEncapsulation.None styles from leaking globally.
+dialog.modal {
+  .modal__panel {
+    background: var(--color-bg-elevated);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-modal);
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+    width: 90vw;
+    overflow: hidden;
+
+    &--sm { max-width: 400px; }
+    &--md { max-width: 560px; }
+    &--lg { max-width: 768px; }
+  }
+
+  .modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-md) var(--spacing-md) var(--spacing-sm);
+    border-bottom: var(--border-width-thin) solid var(--color-border-default);
+    flex-shrink: 0;
+  }
+
+  .modal__title {
+    font-family: var(--font-family-display);
+    font-optical-sizing: auto;
+    font-size: var(--font-size-h3);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
+    color: var(--color-text-default);
+    margin: 0;
+  }
+
+  .modal__close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--color-text-subtle);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.15s ease, color 0.15s ease;
+
+    &:hover {
+      background: var(--color-action-tertiary-hover);
+      color: var(--color-text-default);
+    }
+
+    &:focus-visible {
+      outline: var(--focus-ring-width) solid var(--color-focus);
+      outline-offset: var(--focus-ring-offset);
+    }
+  }
+
+  .modal__body {
+    padding: var(--spacing-md);
+    overflow-y: auto;
+    flex: 1;
+    color: var(--color-text-default);
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-relaxed);
+
+    // Suppress mouse-click focus ring; show ring for keyboard users who Tab to scroll
+    &:focus {
+      outline: none;
+    }
+    &:focus-visible {
+      outline: 2px solid var(--color-focus);
+      outline-offset: -2px; // inset — modal__panel clips overflow:hidden
+    }
+  }
+
+  // Footer is projected via [slot=footer] — consumer wraps content in .modal__footer
+  .modal__footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-top: var(--border-width-thin) solid var(--color-border-default);
+    flex-shrink: 0;
+  }
+}

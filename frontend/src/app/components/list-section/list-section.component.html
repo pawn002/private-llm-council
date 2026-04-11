@@ -2,15 +2,15 @@
   <div class="card {{ cardClass() }}">
     <h3>
       @if (icon()) {
-        <span>{{ icon() }}</span>
+        <i [class]="icon()" aria-hidden="true"></i>
       }
-      {{ title() }}
+      {{ heading() }}
     </h3>
     <ul>
       @for (item of safeItems(); track item) {
         <li>
           <span class="bullet {{ bulletColor() }}">•</span>
-          {{ item }}
+          <span [innerHTML]="item | markdown:true"></span>
         </li>
       }
     </ul>

@@ -1,0 +1,7 @@
+<div class="minority-item">
+  <div class="minority-header">
+    <span class="minority-member">{{ report().member_id }}</span>
+  </div>
+  <div class="minority-position prose" [innerHTML]="report().position | markdown"></div>
+  <div class="minority-rationale prose" [innerHTML]="report().rationale | markdown"></div>
+</div>

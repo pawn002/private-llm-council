@@ -191,6 +191,132 @@ REASONING: Test
         assert confidence.dissent_strength == 1.0  # Clamped from 2.0
 
 
+class TestExtractConsensusAndInsights:
+    """Tests for extract_consensus_and_insights — two parallel LLM calls."""
+
+    @pytest.mark.asyncio
+    async def test_returns_parsed_items(self, mock_gateway, sample_perspectives):
+        """Normal path: both calls return bullet lists."""
+        mock_gateway.complete.side_effect = [
+            InferenceResponse(
+                content="- Both agreed growth carries risk\n- Internal readiness matters",
+                model="llama3.2:1b",
+            ),
+            InferenceResponse(
+                content="- Only phi raised operational collapse as a specific risk",
+                model="llama3.2:1b",
+            ),
+        ]
+
+        analyzer = DeliberationAnalyzer(mock_gateway, "llama3.2:1b")
+        consensus, insights = await analyzer.extract_consensus_and_insights(
+            question="Should we grow fast?",
+            perspectives=sample_perspectives,
+            synthesis="The council is divided.",
+        )
+
+        assert consensus == ["Both agreed growth carries risk", "Internal readiness matters"]
+        assert insights == ["Only phi raised operational collapse as a specific risk"]
+        assert mock_gateway.complete.call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_empty_perspectives_returns_empty(self, mock_gateway):
+        """No perspectives → skip LLM calls entirely."""
+        analyzer = DeliberationAnalyzer(mock_gateway, "llama3.2:1b")
+        consensus, insights = await analyzer.extract_consensus_and_insights(
+            question="Test?",
+            perspectives=[],
+            synthesis="",
+        )
+
+        assert consensus == []
+        assert insights == []
+        mock_gateway.complete.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_none_sentinel_excluded(self, mock_gateway, sample_perspectives):
+        """NONE bullets are excluded from results."""
+        mock_gateway.complete.side_effect = [
+            InferenceResponse(content="- NONE", model="llama3.2:1b"),
+            InferenceResponse(content="- NONE", model="llama3.2:1b"),
+        ]
+
+        analyzer = DeliberationAnalyzer(mock_gateway, "llama3.2:1b")
+        consensus, insights = await analyzer.extract_consensus_and_insights(
+            question="Test?",
+            perspectives=sample_perspectives,
+            synthesis="Test synthesis.",
+        )
+
+        assert consensus == []
+        assert insights == []
+
+    @pytest.mark.asyncio
+    async def test_gateway_exception_returns_empty(self, mock_gateway, sample_perspectives):
+        """Gateway failure is caught; method returns empty lists, does not raise."""
+        mock_gateway.complete.side_effect = RuntimeError("Ollama unreachable")
+
+        analyzer = DeliberationAnalyzer(mock_gateway, "llama3.2:1b")
+        consensus, insights = await analyzer.extract_consensus_and_insights(
+            question="Test?",
+            perspectives=sample_perspectives,
+            synthesis="Test synthesis.",
+        )
+
+        assert consensus == []
+        assert insights == []
+
+    @pytest.mark.asyncio
+    async def test_label_echoes_excluded(self, mock_gateway, sample_perspectives):
+        """Bullets that are member-name labels (e.g. '- Phi:') are filtered out."""
+        mock_gateway.complete.side_effect = [
+            InferenceResponse(
+                content="- Phi:\n- Both agreed on caution",
+                model="llama3.2:1b",
+            ),
+            InferenceResponse(
+                content="- Psi:\n- Psi raised market timing",
+                model="llama3.2:1b",
+            ),
+        ]
+
+        analyzer = DeliberationAnalyzer(mock_gateway, "llama3.2:1b")
+        consensus, insights = await analyzer.extract_consensus_and_insights(
+            question="Test?",
+            perspectives=sample_perspectives,
+            synthesis="Test synthesis.",
+        )
+
+        assert "Phi:" not in consensus
+        assert consensus == ["Both agreed on caution"]
+        assert "Psi:" not in insights
+        assert insights == ["Psi raised market timing"]
+
+    @pytest.mark.asyncio
+    async def test_bullet_char_accepted(self, mock_gateway, sample_perspectives):
+        """• bullets (U+2022) are accepted, matching real small-model output."""
+        mock_gateway.complete.side_effect = [
+            InferenceResponse(
+                content="• Both agreed growth carries risk",
+                model="llama3.2:1b",
+            ),
+            InferenceResponse(
+                content="• Only phi raised the collapse scenario",
+                model="llama3.2:1b",
+            ),
+        ]
+
+        analyzer = DeliberationAnalyzer(mock_gateway, "llama3.2:1b")
+        consensus, insights = await analyzer.extract_consensus_and_insights(
+            question="Test?",
+            perspectives=sample_perspectives,
+            synthesis="Test synthesis.",
+        )
+
+        assert len(consensus) == 1
+        assert len(insights) == 1
+
+
 class TestDisagreementSeverity:
     """Tests for DisagreementSeverity enum."""
 

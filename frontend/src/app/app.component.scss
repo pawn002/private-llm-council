@@ -1,7 +1,7 @@
 :host {
   display: block;
   min-height: 100vh;
-  background-color: var(--council-bg);
+  background-color: var(--color-bg-page);
 }
 
 main {
@@ -11,40 +11,4 @@ main {
 .container {
   max-width: 56rem;
   margin: 0 auto;
-}
-
-footer {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background-color: rgba(26, 26, 26, 0.8);
-  backdrop-filter: blur(8px);
-  border-top: 1px solid var(--council-border);
-  padding: 0.5rem 0;
-}
-
-.footer-content {
-  max-width: 56rem;
-  margin: 0 auto;
-  padding: 0 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 0.75rem;
-  color: #6b7280;
-}
-
-.status {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.status-dot {
-  display: inline-block;
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
-  background-color: #22c55e;
 }

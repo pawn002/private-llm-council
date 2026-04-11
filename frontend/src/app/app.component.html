@@ -12,12 +12,4 @@
   </div>
 </main>
 
-<footer>
-  <div class="footer-content">
-    <span>The Sovereign Council v0.1.0</span>
-    <span class="status">
-      <span class="status-dot"></span>
-      {{ status()?.mode?.mode ?? 'Loading...' }}
-    </span>
-  </div>
-</footer>
+<app-footer [mode]="status()?.mode?.mode ?? null" />

@@ -1,0 +1,27 @@
+<div class="card question-header">
+  <div class="question-content">
+    <div class="question-text">
+      <p class="label">Question</p>
+      <h1>{{ deliberation().question }}</h1>
+      <p class="meta">
+        @if (failedCount()) {
+          <span class="warning-badge" [attr.title]="failedCount() + ' council member(s) failed to respond'">
+            <i class="ph-fill ph-warning" aria-hidden="true"></i> {{ deliberation().perspectives.length }}/{{ totalMembers() }} perspectives ({{ failedCount() }} failed)
+          </span>
+        } @else {
+          {{ deliberation().perspectives.length }} perspectives
+        }
+        · {{ deliberation().disagreements.length }} disagreements
+        · {{ formattedTimestamp() }}
+      </p>
+    </div>
+    <div class="question-actions">
+      <button class="btn btn-secondary" (click)="saveClicked.emit()">
+        <i class="ph-fill ph-lock-key" aria-hidden="true"></i> Save
+      </button>
+      <button class="btn btn-primary" (click)="newQuestion.emit()">
+        New Question
+      </button>
+    </div>
+  </div>
+</div>

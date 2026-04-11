@@ -7,12 +7,12 @@
         <p>{{ perspective().character }} · {{ perspective().model }}</p>
       </div>
     </div>
-    <span class="toggle-icon">{{ isExpanded() ? '▼' : '▶' }}</span>
+    <i [class]="isExpanded() ? 'ph-bold ph-caret-down toggle-icon' : 'ph-bold ph-caret-right toggle-icon'" aria-hidden="true"></i>
   </button>
 
   @if (isExpanded()) {
     <div class="card-content">
-      <div class="perspective-text">{{ perspective().content }}</div>
+      <div class="perspective-text prose" [innerHTML]="perspective().content | markdown"></div>
       <div class="timestamp">{{ formattedTimestamp() }}</div>
     </div>
   }

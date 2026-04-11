@@ -22,6 +22,8 @@ services:
     volumes:
       - ./config:/app/config:ro
       - council-data:/app/data
+      - ./backend/tests:/app/tests:ro
+      - ./backend/scripts:/app/scripts:ro
     networks:
       - council-net
     # Note: Not exposing port externally - accessed through frontend

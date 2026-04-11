@@ -22,11 +22,11 @@ export class FailedPerspectiveCardComponent {
   readonly errorIcon = computed(() => {
     const type = this.failedMember().error_type;
     return {
-      'timeout': '⏱',
-      'model_unavailable': '🚫',
-      'gateway_error': '🔌',
-      'unknown': '❌'
-    }[type] || '❌';
+      'timeout': 'ph-fill ph-timer',
+      'model_unavailable': 'ph-fill ph-prohibit',
+      'gateway_error': 'ph-fill ph-plug',
+      'unknown': 'ph-fill ph-x-circle',
+    }[type] || 'ph-fill ph-x-circle';
   });
 
   readonly errorDescription = computed(() => {

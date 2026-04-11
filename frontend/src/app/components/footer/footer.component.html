@@ -1,0 +1,14 @@
+<footer>
+  <div class="footer-content">
+    <span>The Sovereign Council v0.1.0</span>
+    <button
+      class="theme-toggle"
+      (click)="toggleTheme()"
+      [attr.aria-label]="isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
+    ><i [class]="isDark() ? 'ph-fill ph-sun' : 'ph-fill ph-moon'" aria-hidden="true"></i></button>
+    <span class="status">
+      <span class="status-dot"></span>
+      {{ mode() ?? 'Loading...' }}
+    </span>
+  </div>
+</footer>

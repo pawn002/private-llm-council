@@ -40,7 +40,7 @@ export class DeliberationService {
 
   get isLoading(): boolean {
     const phase = this.stateSubject.value.phase;
-    return ['gathering', 'reviewing', 'synthesizing', 'analyzing'].includes(phase);
+    return ['gathering', 'reviewing', 'analyzing', 'synthesizing'].includes(phase);
   }
 
   private setPhase(phase: DeliberationPhase, message = ''): void {

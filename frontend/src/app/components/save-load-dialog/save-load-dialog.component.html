@@ -1,112 +1,101 @@
-@if (isOpen()) {
-  <div class="dialog-backdrop" (click)="onClose()">
-    <div class="dialog" (click)="$event.stopPropagation()">
-      <h2>
-        <span>{{ mode() === 'save' ? '🔐' : '🔓' }}</span>
-        {{ mode() === 'save' ? 'Encrypt & Save Deliberation' : 'Load Deliberation' }}
-      </h2>
+<app-modal
+  [open]="isOpen()"
+  [title]="mode() === 'save' ? 'Encrypt & Save Deliberation' : 'Load Deliberation'"
+  size="sm"
+  (closed)="onClose()"
+>
+  @if (error()) {
+    <div class="error-message">{{ error() }}</div>
+  }
 
-      @if (error()) {
-        <div class="error-message">{{ error() }}</div>
-      }
+  @if (mode() === 'save') {
+    <p class="description">
+      Your deliberation will be encrypted with AES-256-GCM. The passphrase
+      is not stored — if you forget it, the data cannot be recovered.
+    </p>
 
-      @if (mode() === 'save') {
-        <p class="description">
-          Your deliberation will be encrypted with AES-256-GCM. The passphrase
-          is not stored - if you forget it, the data cannot be recovered.
-        </p>
-
-        @if (deliberationId()) {
-          <div class="id-display">
-            ID: <code>{{ deliberationId() }}</code>
-          </div>
-        }
-
-        <div class="form-group">
-          <label for="passphrase">Passphrase</label>
-          <input
-            type="password"
-            id="passphrase"
-            class="input"
-            [ngModel]="passphrase()"
-            (ngModelChange)="updatePassphrase($event)"
-            placeholder="Minimum 8 characters"
-          />
-        </div>
-
-        <div class="form-group">
-          <label for="confirmPassphrase">Confirm Passphrase</label>
-          <input
-            type="password"
-            id="confirmPassphrase"
-            class="input"
-            [ngModel]="confirmPassphrase()"
-            (ngModelChange)="updateConfirmPassphrase($event)"
-            placeholder="Re-enter passphrase"
-          />
-        </div>
-      } @else {
-        <p class="description">
-          Select a saved deliberation and enter the passphrase to decrypt it.
-        </p>
-
-        <div class="form-group">
-          <label for="selectId">Saved Deliberations</label>
-          @if (savedIds().length === 0) {
-            <p class="no-items">No saved deliberations</p>
-          } @else {
-            <select
-              id="selectId"
-              class="input"
-              [ngModel]="selectedId()"
-              (ngModelChange)="updateSelectedId($event)"
-            >
-              <option value="">Select...</option>
-              @for (id of savedIds(); track id) {
-                <option [value]="id">{{ id }}</option>
-              }
-            </select>
-          }
-        </div>
-
-        <div class="form-group">
-          <label for="loadPassphrase">Passphrase</label>
-          <input
-            type="password"
-            id="loadPassphrase"
-            class="input"
-            [ngModel]="passphrase()"
-            (ngModelChange)="updatePassphrase($event)"
-            placeholder="Enter passphrase"
-          />
-        </div>
-      }
-
-      <div class="dialog-actions">
-        <div class="left-actions">
-          @if (mode() === 'save') {
-            <button
-              class="btn btn-danger"
-              [disabled]="loading()"
-              (click)="onForget()"
-            >
-              Forget Forever
-            </button>
-          }
-        </div>
-        <div class="right-actions">
-          <button class="btn btn-secondary" [disabled]="loading()" (click)="onClose()">
-            Cancel
-          </button>
-          <button
-            class="btn btn-primary"
-            [disabled]="loading()"
-            (click)="mode() === 'save' ? onSave() : onLoad()"
-          >
-            {{ loading() ? 'Processing...' : (mode() === 'save' ? 'Encrypt & Save' : 'Decrypt & Load') }}
-          </button>
-        </div>
+    @if (deliberationId()) {
+      <div class="id-display">
+        ID: <code>{{ deliberationId() }}</code>
       </div>
+    }
+
+    <div class="form-group">
+      <label for="passphrase">Passphrase</label>
+      <input
+        type="password"
+        id="passphrase"
+        class="input"
+        [ngModel]="passphrase()"
+        (ngModelChange)="updatePassphrase($event)"
+        placeholder="Minimum 8 characters"
+      />
     </div>
+
+    <div class="form-group">
+      <label for="confirmPassphrase">Confirm Passphrase</label>
+      <input
+        type="password"
+        id="confirmPassphrase"
+        class="input"
+        [ngModel]="confirmPassphrase()"
+        (ngModelChange)="updateConfirmPassphrase($event)"
+        placeholder="Re-enter passphrase"
+      />
+    </div>
+  } @else {
+    <p class="description">
+      Select a saved deliberation and enter the passphrase to decrypt it.
+    </p>
+
+    <div class="form-group">
+      <label for="selectId">Saved Deliberations</label>
+      @if (savedIds().length === 0) {
+        <p class="no-items">No saved deliberations</p>
+      } @else {
+        <select
+          id="selectId"
+          class="input"
+          [ngModel]="selectedId()"
+          (ngModelChange)="updateSelectedId($event)"
+        >
+          <option value="">Select...</option>
+          @for (id of savedIds(); track id) {
+            <option [value]="id">{{ id }}</option>
+          }
+        </select>
+      }
+    </div>
+
+    <div class="form-group">
+      <label for="loadPassphrase">Passphrase</label>
+      <input
+        type="password"
+        id="loadPassphrase"
+        class="input"
+        [ngModel]="passphrase()"
+        (ngModelChange)="updatePassphrase($event)"
+        placeholder="Enter passphrase"
+      />
+    </div>
+  }
+
+  <div slot="footer" class="modal__footer">
+    @if (mode() === 'save') {
+      <button class="btn btn-danger btn-sm" [disabled]="loading()" (click)="onForget()">
+        Forget Forever
+      </button>
+      <span style="flex: 1"></span>
+    }
+    <button class="btn btn-secondary btn-sm" [disabled]="loading()" (click)="onClose()">
+      Cancel
+    </button>
+    <button
+      class="btn btn-primary btn-sm"
+      [disabled]="loading()"
+      (click)="mode() === 'save' ? onSave() : onLoad()"
+    >
+      {{ loading() ? 'Processing…' : (mode() === 'save' ? 'Encrypt & Save' : 'Decrypt & Load') }}
+    </button>
   </div>
-}
+</app-modal>

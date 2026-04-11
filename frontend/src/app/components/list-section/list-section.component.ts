@@ -9,7 +9,7 @@ import { MarkdownPipe } from '../../pipes/markdown.pipe';
   styleUrls: ['./list-section.component.scss'],
 })
 export class ListSectionComponent {
-  readonly title = input.required<string>();
+  readonly heading = input.required<string>();
   readonly items = input<string[] | null>([]);
   readonly icon = input<string>('');
   readonly cardClass = input<string>('');

@@ -4,7 +4,7 @@
       @if (icon()) {
         <i [class]="icon()" aria-hidden="true"></i>
       }
-      {{ title() }}
+      {{ heading() }}
     </h3>
     <ul>
       @for (item of safeItems(); track item) {

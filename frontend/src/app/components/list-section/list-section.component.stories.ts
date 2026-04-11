@@ -20,7 +20,7 @@ const sampleItems = [
 
 export const Consensus: Story = {
   args: {
-    title: 'Points of Agreement',
+    heading: 'Points of Agreement',
     icon: '✓',
     items: sampleItems,
     cardClass: 'consensus-card',
@@ -30,7 +30,7 @@ export const Consensus: Story = {
 
 export const Divisions: Story = {
   args: {
-    title: 'Areas of Division',
+    heading: 'Areas of Division',
     icon: '⚡',
     items: [
       'Phi and Psi disagree on whether correlation-based evidence is admissible.',
@@ -43,7 +43,7 @@ export const Divisions: Story = {
 
 export const Insights: Story = {
   args: {
-    title: 'Unique Insights',
+    heading: 'Unique Insights',
     icon: '💡',
     items: [
       'Omega uniquely highlighted the resource asymmetry across deployment contexts.',
@@ -56,7 +56,7 @@ export const Insights: Story = {
 
 export const Empty: Story = {
   args: {
-    title: 'Points of Agreement',
+    heading: 'Points of Agreement',
     icon: '✓',
     items: [],
     bulletColor: 'green',

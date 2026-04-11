@@ -376,8 +376,8 @@ class CouncilOrchestrator:
                 )
                 deliberation.synthesis.consensus_points = consensus_points
                 deliberation.synthesis.unique_insights = unique_insights
-            except Exception:
-                pass  # Leave as empty lists on error
+            except Exception as e:
+                logger.warning("Consensus/insights extraction failed: %s", e, exc_info=True)
 
         # Assess confidence if analyzer available
         if analyzer:

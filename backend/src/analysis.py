@@ -8,6 +8,7 @@ no external NLP services that might phone home.
 Philosophy: The council understands itself through its own intelligence.
 """
 
+import asyncio
 import logging
 from dataclasses import dataclass
 from enum import Enum
@@ -124,31 +125,29 @@ IMPORTANT: For each position, write the actual substantive viewpoint that member
 (repeat for each disagreement, or write NONE if all perspectives agree)
 """
 
-CONSENSUS_INSIGHTS_PROMPT = """You are extracting structured summaries from a council deliberation.
+CONSENSUS_POINTS_PROMPT = """Read these perspectives and identify what all or most members agreed on.
 
 Question: {question}
 
-Individual Perspectives:
+Perspectives:
 {perspectives}
 
-Synthesis:
-{synthesis}
+Write a bullet list of shared conclusions — ideas everyone or almost everyone expressed.
+Do NOT include member names. Write the shared idea itself, not who said it.
+Use "- " bullets. One sentence per bullet. Write "- NONE" if nothing was shared.
+Only output the bullet list."""
 
-List the points where council members genuinely agreed, and the distinctive ideas that only one or two members raised.
+UNIQUE_INSIGHTS_PROMPT = """Read these perspectives and identify ideas that only one member raised.
 
-CONSENSUS_POINTS:
-- <one point of genuine agreement>
-- <another point>
+Question: {question}
 
-UNIQUE_INSIGHTS:
-- <a distinctive idea not shared by most members>
-- <another distinctive idea>
+Perspectives:
+{perspectives}
 
-Rules:
-- Write only bullet lines under each header. No other text.
-- Write NONE under a header if nothing applies.
-- Keep each bullet to one concise sentence.
-"""
+Write a bullet list of distinctive ideas that appear in only one perspective.
+Do NOT include member names. Write the distinctive idea itself, not who said it.
+Use "- " bullets. One sentence per bullet. Write "- NONE" if there are no unique insights.
+Only output the bullet list."""
 
 MINORITY_REPORT_PROMPT = """You are identifying minority positions that deserve attention.
 
@@ -206,6 +205,28 @@ CONSENSUS_STRENGTH: <0.0-1.0>
 DISSENT_STRENGTH: <0.0-1.0>
 REASONING: <explanation>
 """
+
+
+def _parse_bullet_list(response: str) -> list[str]:
+    """Extract bullet items from a response that contains only a bullet list.
+
+    Accepts both '- ' and '• ' prefixes. Excludes NONE sentinels, member-name
+    labels (short text ending with ':'), and blank items.
+    """
+    items = []
+    for line in response.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("- ") or stripped.startswith("• "):
+            text = stripped[2:].strip()
+            if not text:
+                continue
+            if text.upper() == "NONE":
+                continue
+            # Skip labels like "Phi:" or "Member Name:" — model echoing group headers
+            if text.endswith(":") or (len(text) <= 20 and ":" in text):
+                continue
+            items.append(text)
+    return items
 
 
 class DeliberationAnalyzer:
@@ -506,25 +527,51 @@ class DeliberationAnalyzer:
             return [], []
 
         perspectives_text = format_perspectives_for_prompt(perspectives, include_character=False)
-        prompt = CONSENSUS_INSIGHTS_PROMPT.format(
-            question=question,
-            perspectives=perspectives_text,
-            synthesis=synthesis,
-        )
 
         try:
-            response = await self.gateway.complete(
-                model=self.analysis_model,
-                messages=[{"role": "user", "content": prompt}],
-                temperature=Temperature.ANALYTICAL,
+            consensus_prompt = CONSENSUS_POINTS_PROMPT.format(
+                question=question,
+                perspectives=perspectives_text,
             )
-            return self._parse_consensus_insights(response.content)
+            insights_prompt = UNIQUE_INSIGHTS_PROMPT.format(
+                question=question,
+                perspectives=perspectives_text,
+            )
+
+            consensus_resp, insights_resp = await asyncio.gather(
+                self.gateway.complete(
+                    model=self.analysis_model,
+                    messages=[{"role": "user", "content": consensus_prompt}],
+                    temperature=Temperature.ANALYSIS,
+                ),
+                self.gateway.complete(
+                    model=self.analysis_model,
+                    messages=[{"role": "user", "content": insights_prompt}],
+                    temperature=Temperature.ANALYSIS,
+                ),
+            )
+
+            logger.info("Consensus raw:\n%s", consensus_resp.content[:400])
+            logger.info("Insights raw:\n%s", insights_resp.content[:400])
+
+            consensus_points = _parse_bullet_list(consensus_resp.content)
+            unique_insights = _parse_bullet_list(insights_resp.content)
+
+            logger.info(
+                "Consensus/insights extraction — %d consensus points, %d unique insights",
+                len(consensus_points),
+                len(unique_insights),
+            )
+            return consensus_points, unique_insights
         except Exception as e:
             logger.warning("Failed to extract consensus/insights: %s", e)
             return [], []
 
     def _parse_consensus_insights(self, response: str) -> tuple[list[str], list[str]]:
-        """Parse CONSENSUS_POINTS and UNIQUE_INSIGHTS bullet lists from a response."""
+        """Parse CONSENSUS_POINTS and UNIQUE_INSIGHTS sections from a single response.
+
+        Handles mixed-case and markdown-headed section labels produced by small models.
+        """
         consensus_points: list[str] = []
         unique_insights: list[str] = []
 
@@ -535,11 +582,13 @@ class DeliberationAnalyzer:
             if not stripped:
                 continue
 
-            if "CONSENSUS_POINTS" in stripped:
+            # Normalize header: lowercase, strip markdown decoration (#, *, _), collapse separators
+            normalized = stripped.lower().lstrip("#*_ ").replace("_", " ")
+            if normalized.startswith("consensus point"):
                 current_section = "consensus"
-            elif "UNIQUE_INSIGHTS" in stripped:
+            elif normalized.startswith("unique insight"):
                 current_section = "insights"
-            elif stripped.startswith("- ") and current_section:
+            elif (stripped.startswith("- ") or stripped.startswith("• ")) and current_section:
                 text = stripped[2:].strip()
                 if text and text.upper() != "NONE":
                     if current_section == "consensus":
@@ -547,11 +596,6 @@ class DeliberationAnalyzer:
                     elif current_section == "insights":
                         unique_insights.append(text)
 
-        logger.info(
-            "Consensus/insights extraction — %d consensus points, %d unique insights",
-            len(consensus_points),
-            len(unique_insights),
-        )
         return consensus_points, unique_insights
 
     def _parse_confidence(self, response: str) -> ConfidenceAssessment:

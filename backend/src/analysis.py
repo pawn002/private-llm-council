@@ -97,32 +97,39 @@ class ConfidenceAssessment:
     reasoning: str
 
 
-DISAGREEMENT_ANALYSIS_PROMPT = """You are analyzing a council deliberation to identify disagreements.
+DISAGREEMENT_ANALYSIS_PROMPT = """Read these perspectives and find cases where members give OPPOSITE recommendations.
 
-Given multiple perspectives on a question, identify:
-1. Points where perspectives fundamentally conflict (not just different emphasis)
-2. The nature of each disagreement (values, facts, reasoning, priorities)
-3. The severity: MINOR (emphasis), MODERATE (reasoning differs), FUNDAMENTAL (incompatible)
+A disagreement only counts when:
+- One member recommends doing X
+- Another member recommends NOT doing X, or recommends the opposite
+
+If their advice could both be followed, or if they are on different topics, it is NOT a disagreement.
+If you are not certain their positions are opposite, write DISAGREEMENT_COUNT: 0.
+
+Severity:
+- FUNDAMENTAL: following one member's advice makes it impossible to follow the other's
+- MODERATE: the recommendations pull in opposite directions but are not mutually exclusive
+- MINOR: same overall direction, meaningfully different emphasis
+
+Members: {member_names}
 
 Question: {question}
 
 Perspectives:
 {perspectives}
 
-Respond in this exact format:
+Format (use the actual member names from above, not the word "member_name"):
 DISAGREEMENT_COUNT: <number>
 
 DISAGREEMENT_1:
-TOPIC: brief topic description here
+TOPIC: <what they disagree about, in 5 words or fewer>
 SEVERITY: MINOR or MODERATE or FUNDAMENTAL
 POSITIONS:
-- member_name: write their actual specific position on this topic in your own words
-- member_name: write their actual specific position on this topic in your own words
-IMPLICATIONS: explain what this disagreement means for the user making this decision
+- <first member name>: <their specific recommendation>
+- <second member name>: <their opposing recommendation>
+IMPLICATIONS: <what this means for the person asking>
 
-IMPORTANT: For each position, write the actual substantive viewpoint that member holds. Do NOT use placeholder text like "their position" or "view" - describe what they actually said about this topic.
-
-(repeat for each disagreement, or write NONE if all perspectives agree)
+(only include disagreements where the positions are genuinely opposite)
 """
 
 CONSENSUS_POINTS_PROMPT = """Read these perspectives and identify what all or most members agreed on.
@@ -268,10 +275,12 @@ class DeliberationAnalyzer:
 
         # Format perspectives for analysis
         perspectives_text = format_perspectives_for_prompt(perspectives)
+        member_names = " and ".join(p.member_id for p in perspectives)
 
         prompt = DISAGREEMENT_ANALYSIS_PROMPT.format(
             question=question,
             perspectives=perspectives_text,
+            member_names=member_names,
         )
 
         response = await self.gateway.complete(
@@ -459,7 +468,6 @@ class DeliberationAnalyzer:
         # Don't forget the last one
         if current_disagreement and current_disagreement.topic:
             current_disagreement.positions = current_positions
-            # Only add if we have actual positions (not all placeholders)
             if current_positions:
                 disagreements.append(current_disagreement)
             else:
@@ -467,7 +475,15 @@ class DeliberationAnalyzer:
                     f"Disagreement '{current_disagreement.topic}' had no valid positions (all were placeholders)"
                 )
 
-        return disagreements
+        # Discard disagreements with fewer than 2 distinct member positions —
+        # single-position "disagreements" are a model formatting failure, not real conflicts.
+        valid = [d for d in disagreements if len(d.positions) >= 2]
+        if len(valid) < len(disagreements):
+            logger.warning(
+                "Dropped %d disagreement(s) with fewer than 2 positions",
+                len(disagreements) - len(valid),
+            )
+        return valid
 
     def _parse_minority_reports(self, response: str) -> list[MinorityReport]:
         """Parse minority report extraction response."""
